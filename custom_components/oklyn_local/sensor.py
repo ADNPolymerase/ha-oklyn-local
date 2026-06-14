@@ -38,9 +38,39 @@ class OklynSensorDescription(SensorEntityDescription):
     """Description d'un capteur Oklyn local."""
 
     source: str = "data"          # "data" (/api/data) ou "info" (/api/info)
-    field: str = ""               # clé JSON dans la réponse
+    field: str = ""               # clé JSON dans la réponse (sert aussi à la dispo)
     divide: float | None = None   # diviseur de conversion (None = brut)
     value_fn: Callable[[Any], Any] | None = None
+    # payload_fn reçoit TOUT le dict de l'endpoint (pour combiner 2 champs,
+    # ex. mesure corrigée = brut + correction). Prioritaire sur value_fn/divide.
+    payload_fn: Callable[[dict[str, Any]], Any] | None = None
+
+
+def _num(payload: dict[str, Any], field: str) -> float | None:
+    """Lit un champ numérique du payload, ou None s'il manque/invalide."""
+    raw = payload.get(field)
+    if raw is None:
+        return None
+    try:
+        return float(raw)
+    except (TypeError, ValueError):
+        return None
+
+
+def _ph_corrige(payload: dict[str, Any]) -> float | None:
+    """pH corrigé = (PH1 + APH) / 100."""
+    brut, corr = _num(payload, "PH1"), _num(payload, "APH")
+    if brut is None or corr is None:
+        return None
+    return (brut + corr) / DATA_DIVIDE["PH1"]
+
+
+def _redox_corrige(payload: dict[str, Any]) -> float | None:
+    """Redox corrigé = (ORP + ARX) / 10."""
+    brut, corr = _num(payload, "ORP"), _num(payload, "ARX")
+    if brut is None or corr is None:
+        return None
+    return (brut + corr) / DATA_DIVIDE["ORP"]
 
 
 # --- Mesures principales (converties) --------------------------------------
@@ -67,27 +97,49 @@ MEASURE_SENSORS: tuple[OklynSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
     ),
+    # --- pH : valeur corrigée (principale) + valeur brute sonde ------------
+    OklynSensorDescription(
+        key="ph",
+        translation_key="ph",
+        source="data",
+        field="PH1",                 # champ requis pour la disponibilité
+        payload_fn=_ph_corrige,      # (PH1 + APH) / 100
+        native_unit_of_measurement="pH",
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=2,
+    ),
+    OklynSensorDescription(
+        key="ph_sonde",
+        translation_key="ph_sonde",
+        source="data",
+        field="PH1",
+        divide=DATA_DIVIDE["PH1"],   # PH1 / 100 (lecture sonde, sans correction)
+        native_unit_of_measurement="pH",
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=2,
+    ),
+    # --- Redox : valeur corrigée (principale) + valeur brute sonde ---------
     OklynSensorDescription(
         key="redox",
         translation_key="redox",
         source="data",
         field="ORP",
-        divide=DATA_DIVIDE["ORP"],
+        payload_fn=_redox_corrige,   # (ORP + ARX) / 10
         native_unit_of_measurement="mV",
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
     ),
     OklynSensorDescription(
-        key="ph",
-        translation_key="ph",
+        key="redox_sonde",
+        translation_key="redox_sonde",
         source="data",
-        field="PH1",
-        divide=DATA_DIVIDE["PH1"],
-        native_unit_of_measurement="pH",
+        field="ORP",
+        divide=DATA_DIVIDE["ORP"],   # ORP / 10 (lecture sonde, sans correction)
+        native_unit_of_measurement="mV",
         state_class=SensorStateClass.MEASUREMENT,
-        suggested_display_precision=2,
+        suggested_display_precision=0,
     ),
-    # Offsets convertis (hypothèses à confirmer)
+    # --- Corrections appliquées (APH/ARX), diagnostic ---------------------
     OklynSensorDescription(
         key="offset_ph",
         translation_key="offset_ph",
@@ -229,11 +281,15 @@ class OklynLocalSensor(OklynLocalEntity, SensorEntity):
         payload = self._payload
         if payload is None:
             return None
-        raw = payload.get(self.entity_description.field)
+
+        desc = self.entity_description
+        if desc.payload_fn is not None:
+            return desc.payload_fn(payload)
+
+        raw = payload.get(desc.field)
         if raw is None:
             return None
 
-        desc = self.entity_description
         if desc.value_fn is not None:
             return desc.value_fn(raw)
         if desc.divide is not None:

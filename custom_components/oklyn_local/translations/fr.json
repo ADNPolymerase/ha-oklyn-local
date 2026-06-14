@@ -32,8 +32,10 @@
     "sensor": {
       "temperature_eau": { "name": "Température eau" },
       "temperature_air": { "name": "Température air" },
-      "redox": { "name": "Redox" },
-      "ph": { "name": "pH" },
+      "redox": { "name": "Redox corrigé" },
+      "redox_sonde": { "name": "Redox sonde" },
+      "ph": { "name": "pH corrigé" },
+      "ph_sonde": { "name": "pH sonde" },
       "offset_ph": { "name": "Offset pH" },
       "offset_redox": { "name": "Offset Redox" },
       "wifi_signal": { "name": "Signal Wi-Fi" },

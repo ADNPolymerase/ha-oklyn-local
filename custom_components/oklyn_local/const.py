@@ -33,11 +33,17 @@ MODEL = "Oklyn Pool Controller (local)"
 
 # Champs /api/data : facteur de conversion connu / supposé ------------------
 # value = raw / factor  (factor = 1 → valeur brute)
+#
+# pH et Redox ont DEUX valeurs :
+#   - lecture sonde brute : PH1 / 100      et  ORP / 10
+#   - valeur corrigée     : (PH1 + APH)/100 et (ORP + ARX)/10
+# APH et ARX sont des corrections ADDITIVES (offset interne du boîtier),
+# dans la même échelle que PH1 / ORP.
 DATA_DIVIDE = {
     "AIR": 100,   # température air (°C)
     "EAU": 100,   # température eau (°C)
     "ORP": 10,    # redox (mV)
     "PH1": 100,   # pH
-    "APH": 100,   # offset pH (hypothèse à confirmer)
-    "ARX": 10,    # offset redox mV (hypothèse à confirmer)
+    "APH": 100,   # correction pH (additive, même échelle que PH1)
+    "ARX": 10,    # correction redox mV (additive, même échelle que ORP)
 }

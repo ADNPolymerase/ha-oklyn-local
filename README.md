@@ -31,14 +31,21 @@ Installation manuelle : copier `custom_components/oklyn_local/` dans
 ## Entités
 
 ### Mesures principales (`/api/data`)
-| Entité                              | Source | Conversion |
-| ----------------------------------- | ------ | ---------- |
-| `sensor.…_temperature_eau`          | `EAU`  | `/ 100` °C |
-| `sensor.…_temperature_air`          | `AIR`  | `/ 100` °C |
-| `sensor.…_redox`                    | `ORP`  | `/ 10` mV  |
-| `sensor.…_ph`                       | `PH1`  | `/ 100`    |
-| `sensor.…_offset_ph` *(désactivé)*  | `APH`  | `/ 100` *(à confirmer)* |
-| `sensor.…_offset_redox` *(désact.)* | `ARX`  | `/ 10` mV *(à confirmer)* |
+| Entité                              | Source        | Conversion |
+| ----------------------------------- | ------------- | ---------- |
+| `sensor.…_temperature_eau`          | `EAU`         | `/ 100` °C |
+| `sensor.…_temperature_air`          | `AIR`         | `/ 100` °C |
+| `sensor.…_ph` (corrigé)             | `PH1` + `APH` | `(PH1 + APH) / 100` |
+| `sensor.…_ph_sonde` (brut sonde)    | `PH1`         | `PH1 / 100` |
+| `sensor.…_redox` (corrigé)          | `ORP` + `ARX` | `(ORP + ARX) / 10` mV |
+| `sensor.…_redox_sonde` (brut sonde) | `ORP`         | `ORP / 10` mV |
+| `sensor.…_offset_ph` *(désactivé)*  | `APH`         | `/ 100` (correction appliquée) |
+| `sensor.…_offset_redox` *(désact.)* | `ARX`         | `/ 10` mV (correction appliquée) |
+
+> **pH / Redox** : deux entités chacun — la valeur **lue par la sonde** (brute)
+> et la valeur **corrigée** par l'offset interne du boîtier (`APH` / `ARX`,
+> corrections **additives**). La valeur corrigée est celle affichée par Oklyn.
+> La corrigée passe indisponible si la correction (`APH`/`ARX`) manque.
 
 ### Diagnostic boîtier (`/api/info`)
 `wifi_signal` (dBm), `memory_free` (octets), `version`, `core_version`,
