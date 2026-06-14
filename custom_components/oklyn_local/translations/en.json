@@ -1,0 +1,52 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Oklyn Local",
+        "description": "Local read-only polling of the Oklyn controller. No command is ever sent.",
+        "data": {
+          "host": "Controller IP address or hostname"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the controller on the local network.",
+      "invalid_response": "The controller answered but /api/info is invalid.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This Oklyn controller is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Oklyn Local options",
+        "data": {
+          "scan_interval": "Polling interval (seconds)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature_eau": { "name": "Water temperature" },
+      "temperature_air": { "name": "Air temperature" },
+      "redox": { "name": "Redox" },
+      "ph": { "name": "pH" },
+      "offset_ph": { "name": "pH offset" },
+      "offset_redox": { "name": "Redox offset" },
+      "wifi_signal": { "name": "Wi-Fi signal" },
+      "memory_free": { "name": "Free memory" },
+      "version": { "name": "Version" },
+      "core_version": { "name": "Core version" },
+      "sdk_version": { "name": "SDK version" },
+      "raw_field": { "name": "Raw {field}" }
+    },
+    "binary_sensor": {
+      "service_granted": { "name": "Oklyn service granted" },
+      "key_valid": { "name": "Key valid" },
+      "config_valid": { "name": "Configuration valid" }
+    }
+  }
+}

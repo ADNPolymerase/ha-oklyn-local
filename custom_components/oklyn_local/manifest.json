@@ -1,0 +1,11 @@
+{
+  "domain": "oklyn_local",
+  "name": "Oklyn Local",
+  "codeowners": ["@ADNPolymerase"],
+  "config_flow": true,
+  "documentation": "https://github.com/ADNPolymerase/ha-oklyn-local",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/ADNPolymerase/ha-oklyn-local/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

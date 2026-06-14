@@ -1,0 +1,52 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Oklyn Local",
+        "description": "Interrogation locale (lecture seule) du boîtier Oklyn. Aucune commande n'est envoyée.",
+        "data": {
+          "host": "Adresse IP ou nom d'hôte du boîtier"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de joindre le boîtier sur le réseau local.",
+      "invalid_response": "Le boîtier a répondu mais /api/info est invalide.",
+      "unknown": "Erreur inattendue."
+    },
+    "abort": {
+      "already_configured": "Ce boîtier Oklyn est déjà configuré."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options Oklyn Local",
+        "data": {
+          "scan_interval": "Intervalle d'interrogation (secondes)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature_eau": { "name": "Température eau" },
+      "temperature_air": { "name": "Température air" },
+      "redox": { "name": "Redox" },
+      "ph": { "name": "pH" },
+      "offset_ph": { "name": "Offset pH" },
+      "offset_redox": { "name": "Offset Redox" },
+      "wifi_signal": { "name": "Signal Wi-Fi" },
+      "memory_free": { "name": "Mémoire libre" },
+      "version": { "name": "Version" },
+      "core_version": { "name": "Version core" },
+      "sdk_version": { "name": "Version SDK" },
+      "raw_field": { "name": "Brut {field}" }
+    },
+    "binary_sensor": {
+      "service_granted": { "name": "Service Oklyn autorisé" },
+      "key_valid": { "name": "Clef valide" },
+      "config_valid": { "name": "Configuration valide" }
+    }
+  }
+}
