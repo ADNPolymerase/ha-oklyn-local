@@ -83,15 +83,17 @@ Le serveur HTTP local est un **portail diagnostic + provisioning Wi-Fi**. Il n'e
 | Entité | Source | Conversion |
 | --- | --- | --- |
 | `sensor.…_ph` | `PH1` + `APH` | `(PH1 + APH) / 100` (corrigé) |
-| `sensor.…_ph_sonde` | `PH1` | `PH1 / 100` (sonde brute) |
+| `sensor.…_ph_sonde` | `PH1` | `PH1 / 100` (sonde brute, désactivé par défaut) |
 | `sensor.…_redox` | `ORP` + `ARX` | `(ORP + ARX) / 10` mV (corrigé) |
-| `sensor.…_redox_sonde` | `ORP` | `ORP / 10` mV (sonde brute) |
-| `sensor.…_temperature_eau` | `EAU` | `/ 100` °C |
-| `sensor.…_temperature_air` | `AIR` | `/ 100` °C |
+| `sensor.…_redox_sonde` | `ORP` | `ORP / 10` mV (sonde brute, désactivé par défaut) |
+| `sensor.…_temperature_eau` | `EAU` + `ATE` | `(EAU + ATE) / 100` °C (corrigé) |
+| `sensor.…_temperature_eau_sonde` | `EAU` | `EAU / 100` °C (sonde brute, désactivé par défaut) |
+| `sensor.…_temperature_air` | `AIR` + `ATA` | `(AIR + ATA) / 100` °C (corrigé) |
+| `sensor.…_temperature_air_sonde` | `AIR` | `AIR / 100` °C (sonde brute, désactivé par défaut) |
 
-> `APH` / `ARX` sont des **corrections additives de sonde** appliquées par le boîtier.
-> Le capteur corrigé reproduit ce qu'affiche l'app Oklyn. Validé contre l'intégration
-> cloud à ±0,01.
+> `APH` / `ARX` / `ATA` / `ATE` sont des **corrections additives de sonde** appliquées par le boîtier.
+> Les capteurs corrigés reproduisent ce qu'affiche l'app Oklyn.
+> Validé terrain : `ATE = 100` = +1,0 °C, `ATA = -40` = −0,4 °C (2026-06-15).
 
 ### Pompe & Auxiliaire 1 (décodés depuis `SC1`)
 | Entité | Source | Détail |
@@ -153,8 +155,7 @@ commande.
 | `HSN` | numéro de série (= `serial`) | confirmer sur d'autres unités |
 | `TIM` | timestamp Unix du snapshot | confirmer |
 | `OQT` / `PQT` | qualité de mesure ORP / pH (%) | confirmer l'échelle |
-| `BOX` | température ou état du boîtier | valeurs vs ambiant |
-| `ATA` / `ATE` | correction temp air / eau (`/100` ?) | confirmer |
+| `BOX` | température interne boîtier (°C, probable) | confirmer vs ambiant |
 | `HPN` / `SPN` | constants ici (2 / 10) — nb pompes ? programme ? | valeurs sur d'autres installs |
 | `ECM`, `SC2`, `AMG` | inconnus | toute corrélation observée |
 | **AUX2** | **non exposé en local** (firmware) | confirmer sur d'autres versions firmware |

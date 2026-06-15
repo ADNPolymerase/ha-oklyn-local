@@ -73,29 +73,85 @@ def _redox_corrige(payload: dict[str, Any]) -> float | None:
     return (brut + corr) / DATA_DIVIDE["ORP"]
 
 
+def _temp_eau_corrigee(payload: dict[str, Any]) -> float | None:
+    """Température eau corrigée = (EAU + ATE) / 100."""
+    brut, corr = _num(payload, "EAU"), _num(payload, "ATE")
+    if brut is None or corr is None:
+        return None
+    return (brut + corr) / DATA_DIVIDE["EAU"]
+
+
+def _temp_air_corrigee(payload: dict[str, Any]) -> float | None:
+    """Température air corrigée = (AIR + ATA) / 100."""
+    brut, corr = _num(payload, "AIR"), _num(payload, "ATA")
+    if brut is None or corr is None:
+        return None
+    return (brut + corr) / DATA_DIVIDE["AIR"]
+
+
 # --- Mesures principales (converties) --------------------------------------
 MEASURE_SENSORS: tuple[OklynSensorDescription, ...] = (
+    # --- Température eau : corrigée (principale) + sonde brute -------------
     OklynSensorDescription(
         key="temperature_eau",
         translation_key="temperature_eau",
         source="data",
         field="EAU",
-        divide=DATA_DIVIDE["EAU"],
+        payload_fn=_temp_eau_corrigee,   # (EAU + ATE) / 100 — confirmé 2026-06-15
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
     ),
     OklynSensorDescription(
-        key="temperature_air",
-        translation_key="temperature_air",
+        key="temperature_eau_sonde",
+        translation_key="temperature_eau_sonde",
         source="data",
-        field="AIR",
-        divide=DATA_DIVIDE["AIR"],
+        field="EAU",
+        divide=DATA_DIVIDE["EAU"],       # EAU / 100 (sonde brute)
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
+        entity_registry_enabled_default=False,
+    ),
+    # --- Température air : corrigée (principale) + sonde brute -------------
+    OklynSensorDescription(
+        key="temperature_air",
+        translation_key="temperature_air",
+        source="data",
+        field="AIR",
+        payload_fn=_temp_air_corrigee,   # (AIR + ATA) / 100 — confirmé 2026-06-15
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+    ),
+    OklynSensorDescription(
+        key="temperature_air_sonde",
+        translation_key="temperature_air_sonde",
+        source="data",
+        field="AIR",
+        divide=DATA_DIVIDE["AIR"],       # AIR / 100 (sonde brute)
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+        entity_registry_enabled_default=False,
+    ),
+    # --- Température boîtier -----------------------------------------------
+    OklynSensorDescription(
+        key="temperature_boitier",
+        translation_key="temperature_boitier",
+        source="data",
+        field="BOX",
+        divide=DATA_DIVIDE["BOX"],       # BOX en °C entier (probable)
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
     ),
     # --- pH : valeur corrigée (principale) + valeur brute sonde ------------
     OklynSensorDescription(
@@ -160,6 +216,30 @@ MEASURE_SENSORS: tuple[OklynSensorDescription, ...] = (
         native_unit_of_measurement="mV",
         entity_category=EntityCategory.DIAGNOSTIC,
         suggested_display_precision=0,
+        entity_registry_enabled_default=False,
+    ),
+    OklynSensorDescription(
+        key="offset_temp_eau",
+        translation_key="offset_temp_eau",
+        source="data",
+        field="ATE",
+        divide=DATA_DIVIDE["ATE"],
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        suggested_display_precision=1,
+        entity_registry_enabled_default=False,
+    ),
+    OklynSensorDescription(
+        key="offset_temp_air",
+        translation_key="offset_temp_air",
+        source="data",
+        field="ATA",
+        divide=DATA_DIVIDE["ATA"],
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        suggested_display_precision=1,
         entity_registry_enabled_default=False,
     ),
 )

@@ -33,13 +33,18 @@
   "entity": {
     "sensor": {
       "temperature_eau": { "name": "Température eau" },
+      "temperature_eau_sonde": { "name": "Température eau sonde" },
       "temperature_air": { "name": "Température air" },
+      "temperature_air_sonde": { "name": "Température air sonde" },
+      "temperature_boitier": { "name": "Température boîtier" },
       "redox": { "name": "Redox corrigé" },
       "redox_sonde": { "name": "Redox sonde" },
       "ph": { "name": "pH corrigé" },
       "ph_sonde": { "name": "pH sonde" },
       "offset_ph": { "name": "Offset pH" },
       "offset_redox": { "name": "Offset Redox" },
+      "offset_temp_eau": { "name": "Offset température eau" },
+      "offset_temp_air": { "name": "Offset température air" },
       "wifi_signal": { "name": "Signal Wi-Fi" },
       "memory_free": { "name": "Mémoire libre" },
       "version": { "name": "Version" },

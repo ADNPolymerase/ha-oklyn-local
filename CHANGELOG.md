@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.3
+
+- Decoded `ATA` / `ATE` as additive air/water temperature corrections (field-tested
+  2026-06-15: `ATE = 100` = +1.0 °C, `ATA = -40` = −0.4 °C).
+- Temperature sensors now expose the **corrected value** (principal) using
+  `(EAU + ATE) / 100` and `(AIR + ATA) / 100`, matching the Oklyn app display.
+- Added `temperature_eau_sonde` / `temperature_air_sonde` (raw probe, disabled by default).
+- Added `temperature_boitier` diagnostic sensor (`BOX` field, probable controller
+  internal temperature in °C, disabled by default).
+- Added `offset_temp_eau` / `offset_temp_air` diagnostic sensors (`ATE` / `ATA`).
+- Removed real IP from docs; replaced with `IP_OKLYN` placeholder + DHCP reservation tip.
+
 ## 0.1.2
 
 - Robustness: `/api/data` retries within a polling cycle to absorb the

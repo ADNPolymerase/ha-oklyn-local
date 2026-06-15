@@ -83,15 +83,17 @@ The local HTTP server is a **diagnostic + Wi-Fi provisioning portal**. It expose
 | Entity | Source | Conversion |
 | --- | --- | --- |
 | `sensor.…_ph` | `PH1` + `APH` | `(PH1 + APH) / 100` (corrected) |
-| `sensor.…_ph_sonde` | `PH1` | `PH1 / 100` (raw probe) |
+| `sensor.…_ph_sonde` | `PH1` | `PH1 / 100` (raw probe, disabled by default) |
 | `sensor.…_redox` | `ORP` + `ARX` | `(ORP + ARX) / 10` mV (corrected) |
-| `sensor.…_redox_sonde` | `ORP` | `ORP / 10` mV (raw probe) |
-| `sensor.…_temperature_eau` | `EAU` | `/ 100` °C |
-| `sensor.…_temperature_air` | `AIR` | `/ 100` °C |
+| `sensor.…_redox_sonde` | `ORP` | `ORP / 10` mV (raw probe, disabled by default) |
+| `sensor.…_temperature_eau` | `EAU` + `ATE` | `(EAU + ATE) / 100` °C (corrected) |
+| `sensor.…_temperature_eau_sonde` | `EAU` | `EAU / 100` °C (raw probe, disabled by default) |
+| `sensor.…_temperature_air` | `AIR` + `ATA` | `(AIR + ATA) / 100` °C (corrected) |
+| `sensor.…_temperature_air_sonde` | `AIR` | `AIR / 100` °C (raw probe, disabled by default) |
 
-> `APH` / `ARX` are **additive probe corrections** applied by the controller.
-> The corrected sensor matches what the Oklyn app shows. Validated against the
-> cloud integration to ±0.01.
+> `APH` / `ARX` / `ATA` / `ATE` are **additive probe corrections** applied by the
+> controller. Corrected sensors match what the Oklyn app shows.
+> Validated: `ATE = 100` = +1.0 °C, `ATA = -40` = −0.4 °C (field-tested 2026-06-15).
 
 ### Pump & Auxiliary 1 (decoded from `SC1`)
 | Entity | Source | Detail |
@@ -152,8 +154,7 @@ purely by reading, never by sending commands.
 | `HSN` | hardware serial (= `serial`) | confirm on other units |
 | `TIM` | Unix timestamp of the snapshot | confirm |
 | `OQT` / `PQT` | ORP / pH measurement quality (%) | confirm scale |
-| `BOX` | box temperature or status | values vs ambient |
-| `ATA` / `ATE` | air / water temp correction (`/100`?) | confirm |
+| `BOX` | controller internal temperature (°C, probable) | confirm vs ambient |
 | `HPN` / `SPN` | constant here (2 / 10) — pump count? program? | values on other setups |
 | `ECM`, `SC2`, `AMG` | unknown | any correlation you observe |
 | **AUX2** | **not exposed locally** (firmware) | confirm on other firmware versions |

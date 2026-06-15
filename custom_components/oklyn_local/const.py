@@ -81,4 +81,7 @@ DATA_DIVIDE = {
     "PH1": 100,   # pH
     "APH": 100,   # correction pH (additive, même échelle que PH1)
     "ARX": 10,    # correction redox mV (additive, même échelle que ORP)
+    "ATA": 100,   # correction temp air (additive, °C) — confirmé 2026-06-15
+    "ATE": 100,   # correction temp eau (additive, °C) — confirmé 2026-06-15
+    "BOX": 1,     # température interne boîtier (°C, entier) — probable
 }
