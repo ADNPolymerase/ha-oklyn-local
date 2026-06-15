@@ -25,10 +25,15 @@ from .api import (
     OklynLocalError,
 )
 from .const import (
+    AUX1_TYPES,
     CONF_HOST,
+    DEFAULT_AUX1_NAME,
+    DEFAULT_AUX1_TYPE,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    OPT_AUX1_NAME,
+    OPT_AUX1_TYPE,
     OPT_SCAN_INTERVAL,
     SCAN_INTERVAL_OPTIONS,
 )
@@ -89,16 +94,23 @@ class OklynLocalOptionsFlow(OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        current = self.config_entry.options.get(
-            OPT_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-        )
+        opts = self.config_entry.options
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
-                        OPT_SCAN_INTERVAL, default=current
+                        OPT_SCAN_INTERVAL,
+                        default=opts.get(OPT_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
                     ): vol.In(SCAN_INTERVAL_OPTIONS),
+                    vol.Optional(
+                        OPT_AUX1_NAME,
+                        default=opts.get(OPT_AUX1_NAME, DEFAULT_AUX1_NAME),
+                    ): str,
+                    vol.Optional(
+                        OPT_AUX1_TYPE,
+                        default=opts.get(OPT_AUX1_TYPE, DEFAULT_AUX1_TYPE),
+                    ): vol.In(AUX1_TYPES),
                 }
             ),
         )

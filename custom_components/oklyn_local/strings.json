@@ -23,7 +23,9 @@
       "init": {
         "title": "Options Oklyn Local",
         "data": {
-          "scan_interval": "Intervalle d'interrogation (secondes)"
+          "scan_interval": "Intervalle d'interrogation (secondes)",
+          "aux1_name": "Nom d'AUX1",
+          "aux1_type": "Type d'AUX1 (light / heating / electrolyzer / custom)"
         }
       }
     }
@@ -43,12 +45,17 @@
       "version": { "name": "Version" },
       "core_version": { "name": "Version core" },
       "sdk_version": { "name": "Version SDK" },
-      "raw_field": { "name": "Brut {field}" }
+      "raw_field": { "name": "Brut {field}" },
+      "pompe_mode": {
+        "name": "Mode pompe",
+        "state": { "auto": "Auto", "manuel": "Manuel" }
+      }
     },
     "binary_sensor": {
       "service_granted": { "name": "Service Oklyn autorisé" },
       "key_valid": { "name": "Clef valide" },
-      "config_valid": { "name": "Configuration valide" }
+      "config_valid": { "name": "Configuration valide" },
+      "pompe": { "name": "Pompe" }
     }
   }
 }

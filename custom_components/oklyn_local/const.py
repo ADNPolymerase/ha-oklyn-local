@@ -23,6 +23,36 @@ DEFAULT_SCAN_INTERVAL = 30  # secondes
 OPT_SCAN_INTERVAL = "scan_interval"
 SCAN_INTERVAL_OPTIONS = [15, 30, 60, 120, 300]
 
+# Options AUX1 -------------------------------------------------------------
+# Le boîtier n'expose en local QUE l'état de sortie d'AUX1 (bit 22 de SC1).
+# Le mode (interrupteur/régulateur) et le type ne sont PAS exposés → on les
+# laisse configurer dans l'UI pour adapter nom/icône/device_class.
+# AUX2 n'est pas remonté en local du tout (asymétrie firmware).
+OPT_AUX1_NAME = "aux1_name"
+OPT_AUX1_TYPE = "aux1_type"
+DEFAULT_AUX1_NAME = "Auxiliaire 1"
+
+AUX1_TYPE_LIGHT = "light"
+AUX1_TYPE_HEATING = "heating"
+AUX1_TYPE_ELECTROLYZER = "electrolyzer"
+AUX1_TYPE_CUSTOM = "custom"
+AUX1_TYPES = [
+    AUX1_TYPE_LIGHT,
+    AUX1_TYPE_HEATING,
+    AUX1_TYPE_ELECTROLYZER,
+    AUX1_TYPE_CUSTOM,
+]
+DEFAULT_AUX1_TYPE = AUX1_TYPE_CUSTOM
+
+# Décodage du champ SC1 (bitfield d'état) — confirmé terrain 2026-06-15.
+# Référence : memory oklyn-local-sc1-decode.
+SC1_PUMP_RUNNING = 14    # pompe tourne (débit réel)
+SC1_MANUAL_ON = 19       # commande manuelle ON (transitoire)
+SC1_MANUAL_OFF = 20      # commande manuelle OFF (transitoire)
+SC1_AUTO_A = 21          # marche en mode auto
+SC1_AUTO_B = 27          # marche en mode auto (2e bit)
+SC1_AUX1 = 22            # sortie relais AUX1 (indépendante de la pompe)
+
 # Endpoints locaux connus ---------------------------------------------------
 ENDPOINT_INFO = "/api/info"
 ENDPOINT_DATA = "/api/data"

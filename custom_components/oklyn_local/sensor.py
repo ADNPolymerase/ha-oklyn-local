@@ -26,7 +26,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DATA_DIVIDE, DOMAIN
+from .const import DATA_DIVIDE, DOMAIN, SC1_MANUAL_OFF, SC1_MANUAL_ON
 from .coordinator import OklynLocalCoordinator
 from .entity import OklynLocalEntity
 
@@ -237,9 +237,47 @@ async def async_setup_entry(
 ) -> None:
     coordinator: OklynLocalCoordinator = hass.data[DOMAIN][entry.entry_id]
     descriptions = (*MEASURE_SENSORS, *INFO_SENSORS, *RAW_SENSORS)
-    async_add_entities(
+    entities: list[SensorEntity] = [
         OklynLocalSensor(coordinator, desc) for desc in descriptions
-    )
+    ]
+    entities.append(OklynPumpModeSensor(coordinator))
+    async_add_entities(entities)
+
+
+class OklynPumpModeSensor(OklynLocalEntity, SensorEntity):
+    """Mode de la pompe déduit de SC1 : auto / manuel (sinon arrêt = auto)."""
+
+    _attr_translation_key = "pompe_mode"
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = ["auto", "manuel"]
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, coordinator: OklynLocalCoordinator) -> None:
+        super().__init__(coordinator)
+        serial = next(iter(self._attr_device_info["identifiers"]))[1]
+        self._attr_unique_id = f"{serial}_pompe_mode"
+
+    def _sc1(self) -> int | None:
+        data = (self.coordinator.data or {}).get("data")
+        if not data or "SC1" not in data:
+            return None
+        try:
+            return int(data["SC1"])
+        except (TypeError, ValueError):
+            return None
+
+    @property
+    def available(self) -> bool:
+        return super().available and self._sc1() is not None
+
+    @property
+    def native_value(self) -> str | None:
+        sc1 = self._sc1()
+        if sc1 is None:
+            return None
+        if (sc1 >> SC1_MANUAL_ON) & 1 or (sc1 >> SC1_MANUAL_OFF) & 1:
+            return "manuel"
+        return "auto"
 
 
 class OklynLocalSensor(OklynLocalEntity, SensorEntity):

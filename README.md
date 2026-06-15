@@ -47,6 +47,19 @@ Installation manuelle : copier `custom_components/oklyn_local/` dans
 > corrections **additives**). La valeur corrigée est celle affichée par Oklyn.
 > La corrigée passe indisponible si la correction (`APH`/`ARX`) manque.
 
+### Pompe & AUX1 (décodés depuis le champ `SC1` de `/api/data`)
+| Entité | Source | Détail |
+| --- | --- | --- |
+| `binary_sensor.…_pompe` | `SC1` bit 14 | pompe en marche (débit réel) |
+| `sensor.…_pompe_mode` | `SC1` bits 19/20 | `auto` / `manuel` |
+| `binary_sensor.…_aux1` | `SC1` bit 22 | sortie AUX1 ; **nom + type** configurables (lumière / chauffage / électrolyseur / personnalisé → icône + device_class) |
+
+> **AUX2 n'est pas exposé en local** par le firmware (asymétrie confirmée : AUX2
+> ON ne modifie aucun champ de `/api/data`). Aucun capteur AUX2 local n'est donc
+> possible — il faut passer par le cloud. De même, le **mode** AUX
+> (interrupteur/régulateur) et les **consignes** de régulation (pH, redox) ne
+> sont pas remontés en local.
+
 ### Diagnostic boîtier (`/api/info`)
 `wifi_signal` (dBm), `memory_free` (octets), `version`, `core_version`,
 `sdk_version`, et binary sensors `service_granted` (`granted`),
