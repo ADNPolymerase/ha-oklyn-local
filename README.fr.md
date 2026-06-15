@@ -124,6 +124,27 @@ tels quels pour analyse. À activer champ par champ.
 
 ---
 
+## Ce qui est local vs cloud uniquement
+
+Les tests terrain montrent une séparation nette : `/api/data` expose les **mesures physiques temps réel + corrections de calibration + état des relais**. Tout le reste (programmes, consignes, configuration) vit uniquement sur les serveurs cloud Oklyn.
+
+| Paramètre | Local `/api/data` |
+|---|---|
+| AUX1 ON/OFF | ✅ `SC1` bit 22 |
+| Pompe ON/OFF/auto | ✅ `SC1` bits 14/19/20 |
+| Correction sonde pH (`APH`) | ✅ champ `APH` |
+| Correction sonde RedOx (`ARX`) | ✅ champ `ARX` |
+| Correction temp eau (`ATE`) | ✅ champ `ATE` |
+| Correction temp air (`ATA`) | ✅ champ `ATA` |
+| Type de désinfection (chlore/sel) | ❌ cloud uniquement |
+| Volume du bassin | ❌ cloud uniquement |
+| Consigne hors-gel | ❌ cloud uniquement |
+| Mode filtration (auto / fixe) | ❌ cloud uniquement |
+| Consignes de régulation (pH, RedOx) | ❌ cloud uniquement |
+| État AUX2 | ❌ non exposé en local (firmware) |
+
+---
+
 ## Le mot d'état `SC1`
 
 `SC1` est un champ d'état 32 bits. Bits confirmés (testés terrain) :

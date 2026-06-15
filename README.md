@@ -124,6 +124,27 @@ as-is for analysis. Enable per field in the entity settings.
 
 ---
 
+## What is local vs cloud-only
+
+Field-testing shows a clear split: `/api/data` exposes **real-time physical measurements + calibration corrections + relay states**. Everything else (programs, setpoints, configuration) lives on the Oklyn cloud servers only.
+
+| Parameter | Local `/api/data` |
+|---|---|
+| AUX1 ON/OFF | ✅ `SC1` bit 22 |
+| Pump ON/OFF/auto | ✅ `SC1` bits 14/19/20 |
+| pH probe correction (`APH`) | ✅ field `APH` |
+| RedOx probe correction (`ARX`) | ✅ field `ARX` |
+| Water temp correction (`ATE`) | ✅ field `ATE` |
+| Air temp correction (`ATA`) | ✅ field `ATA` |
+| Disinfection type (chlorine/salt) | ❌ cloud only |
+| Pool volume | ❌ cloud only |
+| Frost protection setpoint | ❌ cloud only |
+| Filtration mode (auto / fixed) | ❌ cloud only |
+| Regulation setpoints (pH, RedOx) | ❌ cloud only |
+| AUX2 state | ❌ not exposed locally (firmware) |
+
+---
+
 ## The `SC1` status word
 
 `SC1` is a 32-bit status field. Confirmed bits (field-tested):
