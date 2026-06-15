@@ -20,6 +20,11 @@ CONF_HOST = "host"
 DEFAULT_TIMEOUT = 5  # secondes — timeout HTTP court
 DEFAULT_SCAN_INTERVAL = 30  # secondes
 
+# Le boîtier renvoie fréquemment un corps VIDE avec un HTTP 200 sur /api/data.
+# On réessaie plusieurs fois dans le même cycle de polling pour lisser ces blips.
+HTTP_RETRIES = 4
+HTTP_RETRY_DELAY = 1.0  # secondes entre deux tentatives
+
 OPT_SCAN_INTERVAL = "scan_interval"
 SCAN_INTERVAL_OPTIONS = [15, 30, 60, 120, 300]
 

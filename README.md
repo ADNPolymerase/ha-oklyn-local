@@ -1,90 +1,212 @@
-# Oklyn Local (lecture seule) — POC
+# Oklyn Local for Home Assistant
 
-Intégration Home Assistant **custom, locale et en lecture seule** pour un boîtier
-piscine **Oklyn** connecté en Wi-Fi sur le réseau local.
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/ADNPolymerase/ha-oklyn-local)
+[![GitHub Release](https://badgen.net/github/release/ADNPolymerase/ha-oklyn-local)](https://github.com/ADNPolymerase/ha-oklyn-local/releases)
+[![Validate](https://github.com/ADNPolymerase/ha-oklyn-local/actions/workflows/validate.yml/badge.svg)](https://github.com/ADNPolymerase/ha-oklyn-local/actions/workflows/validate.yml)
+[![HA Version](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ADNPolymerase/ha-oklyn-local/blob/main/LICENSE)
 
-Elle interroge directement le boîtier en HTTP (port 80), **sans passer par le
-cloud Oklyn**, et expose les mesures sous forme de `sensor` / `binary_sensor`.
+**Local, read-only** Home Assistant integration for the **Oklyn** pool
+controller. It polls the controller directly over your LAN (HTTP, port 80) —
+**no cloud, no account, no token** — and exposes the measurements as
+`sensor` / `binary_sensor` entities.
 
-> ⚠️ **Preuve de concept.** Cette version ne pilote **rien** : pas de commande
-> pompe, AUX, AUX2, ni de modification Wi-Fi. Aucun `PUT`/`POST` n'est émis.
-> Le décodage de certains champs est une **hypothèse** à confirmer.
+> 🇫🇷 [Lire en français](README.fr.md)
 
-## Endpoints interrogés
+> ⚠️ **Proof of concept — read-only.** This integration never sends a command:
+> no pump / AUX control, no Wi-Fi config, no `PUT`/`POST`. It only reads
+> `http://<ip>/api/info` and `http://<ip>/api/data`. Some fields are decoded
+> from real-world testing; a few remain **unknown** — see
+> [Help wanted](#help-wanted-decode-the-unknown-fields) below.
 
-| Méthode | URL                       | Usage                         |
-| ------- | ------------------------- | ----------------------------- |
-| `GET`   | `http://<IP>/api/info`    | infos techniques du boîtier   |
-| `GET`   | `http://<IP>/api/data`    | mesures brutes                |
+> ☁️ **Need control (pump, auxiliaries)?** The Oklyn controller can only be
+> *commanded* through the cloud. Use the companion cloud integration
+> [ADNPolymerase/ha-oklyn](https://github.com/ADNPolymerase/ha-oklyn) for that.
+> This project is for fast, cloud-independent **reading**.
 
-## Installation (HACS — dépôt personnalisé)
+---
 
-1. HACS → menu ⋮ → **Dépôts personnalisés**
-2. URL du dépôt + catégorie **Intégration**
-3. Installer **Oklyn Local**, redémarrer Home Assistant
-4. **Paramètres → Appareils & services → Ajouter une intégration → Oklyn Local**
-5. Saisir l'IP du boîtier (ex. `192.168.0.42`)
+## Features
 
-Installation manuelle : copier `custom_components/oklyn_local/` dans
-`/config/custom_components/` puis redémarrer.
+- **pH** — corrected (`(PH1 + APH) / 100`) and raw probe value
+- **RedOx / ORP** — corrected (`(ORP + ARX) / 10`, mV) and raw probe value
+- **Water** and **air** temperature (°C)
+- **Pump**: running state + mode (`auto` / `manuel`), decoded from the `SC1` status word
+- **Auxiliary 1**: output state, with configurable name & type (light / heating / electrolyzer / custom)
+- **Diagnostics**: Wi-Fi signal, free memory, firmware/core/SDK versions, service/key/config flags
+- **Raw fields** exposed (disabled by default) for further analysis
+- Full UI configuration — IP and polling interval, no YAML
+- Short HTTP timeout, configurable polling (15 / 30 / 60 / 120 / 300 s)
+- Robust to the controller's intermittent empty responses (built-in retries)
+- English and French translations
 
-## Entités
+---
 
-### Mesures principales (`/api/data`)
-| Entité                              | Source        | Conversion |
-| ----------------------------------- | ------------- | ---------- |
-| `sensor.…_temperature_eau`          | `EAU`         | `/ 100` °C |
-| `sensor.…_temperature_air`          | `AIR`         | `/ 100` °C |
-| `sensor.…_ph` (corrigé)             | `PH1` + `APH` | `(PH1 + APH) / 100` |
-| `sensor.…_ph_sonde` (brut sonde)    | `PH1`         | `PH1 / 100` |
-| `sensor.…_redox` (corrigé)          | `ORP` + `ARX` | `(ORP + ARX) / 10` mV |
-| `sensor.…_redox_sonde` (brut sonde) | `ORP`         | `ORP / 10` mV |
-| `sensor.…_offset_ph` *(désactivé)*  | `APH`         | `/ 100` (correction appliquée) |
-| `sensor.…_offset_redox` *(désact.)* | `ARX`         | `/ 10` mV (correction appliquée) |
+## Installation via HACS
 
-> **pH / Redox** : deux entités chacun — la valeur **lue par la sonde** (brute)
-> et la valeur **corrigée** par l'offset interne du boîtier (`APH` / `ARX`,
-> corrections **additives**). La valeur corrigée est celle affichée par Oklyn.
-> La corrigée passe indisponible si la correction (`APH`/`ARX`) manque.
+1. In Home Assistant, open **HACS → Integrations**.
+2. Click the **⋮** menu → **Custom repositories**.
+3. Add `https://github.com/ADNPolymerase/ha-oklyn-local` with category **Integration**.
+4. Search for **Oklyn Local** and click **Download**.
+5. Restart Home Assistant.
+6. Go to **Settings → Devices & Services → Add Integration** and search for **Oklyn Local**.
+7. Enter the controller IP (e.g. `192.168.0.42`).
 
-### Pompe & AUX1 (décodés depuis le champ `SC1` de `/api/data`)
-| Entité | Source | Détail |
+## Manual installation
+
+1. Copy the `custom_components/oklyn_local/` folder into your Home Assistant
+   `config/custom_components/` directory.
+2. Restart Home Assistant, then add the integration as above.
+
+---
+
+## Endpoints used
+
+| Method | URL | Purpose |
 | --- | --- | --- |
-| `binary_sensor.…_pompe` | `SC1` bit 14 | pompe en marche (débit réel) |
+| `GET` | `http://<ip>/api/info` | controller technical info |
+| `GET` | `http://<ip>/api/data` | raw measurements + status word |
+
+The local HTTP server is a **diagnostic + Wi-Fi provisioning portal**. It exposes
+**no command endpoint** — pump/AUX control is cloud-only by design.
+
+---
+
+## Entities
+
+### Measurements (`/api/data`)
+| Entity | Source | Conversion |
+| --- | --- | --- |
+| `sensor.…_ph` | `PH1` + `APH` | `(PH1 + APH) / 100` (corrected) |
+| `sensor.…_ph_sonde` | `PH1` | `PH1 / 100` (raw probe) |
+| `sensor.…_redox` | `ORP` + `ARX` | `(ORP + ARX) / 10` mV (corrected) |
+| `sensor.…_redox_sonde` | `ORP` | `ORP / 10` mV (raw probe) |
+| `sensor.…_temperature_eau` | `EAU` | `/ 100` °C |
+| `sensor.…_temperature_air` | `AIR` | `/ 100` °C |
+
+> `APH` / `ARX` are **additive probe corrections** applied by the controller.
+> The corrected sensor matches what the Oklyn app shows. Validated against the
+> cloud integration to ±0.01.
+
+### Pump & Auxiliary 1 (decoded from `SC1`)
+| Entity | Source | Detail |
+| --- | --- | --- |
+| `binary_sensor.…_pompe` | `SC1` bit 14 | pump running (real flow) |
 | `sensor.…_pompe_mode` | `SC1` bits 19/20 | `auto` / `manuel` |
-| `binary_sensor.…_aux1` | `SC1` bit 22 | sortie AUX1 ; **nom + type** configurables (lumière / chauffage / électrolyseur / personnalisé → icône + device_class) |
+| `binary_sensor.…_aux1` | `SC1` bit 22 | AUX1 output; **name + type** configurable |
 
-> **AUX2 n'est pas exposé en local** par le firmware (asymétrie confirmée : AUX2
-> ON ne modifie aucun champ de `/api/data`). Aucun capteur AUX2 local n'est donc
-> possible — il faut passer par le cloud. De même, le **mode** AUX
-> (interrupteur/régulateur) et les **consignes** de régulation (pH, redox) ne
-> sont pas remontés en local.
+### Diagnostics (`/api/info`)
+Wi-Fi signal (dBm), free memory (bytes), `version`, `core_version`, `sdk_version`,
+and binary sensors `service_granted`, `key_valid`, `config_valid`.
 
-### Diagnostic boîtier (`/api/info`)
-`wifi_signal` (dBm), `memory_free` (octets), `version`, `core_version`,
-`sdk_version`, et binary sensors `service_granted` (`granted`),
-`key_valid` (`key`), `config_valid` (`valid`).
+### Raw fields (`/api/data`, disabled by default)
+`HSN, TIM, SC1, BOX, OQT, PQT, HPN, SPN, SC2, ECM, APH, ARX, AMG, ATA, ATE` — exposed
+as-is for analysis. Enable per field in the entity settings.
 
-### Capteurs bruts (`/api/data`, désactivés par défaut)
-`HSN, TIM, SC1, BOX, OQT, PQT, HPN, SPN, SC2, ECM, APH, ARX, AMG, ATA, ATE`
-— exposés tels quels pour analyse. À activer dans l'UI au besoin.
+---
 
-## Décodage — hypothèses
+## Options
 
-Les facteurs de conversion sont centralisés dans
-[`const.py`](custom_components/oklyn_local/const.py) (`DATA_DIVIDE`) pour être
-faciles à corriger. Les champs inconnus ne sont **pas** surinterprétés : ils
-restent bruts.
+**Settings → Devices & Services → Oklyn Local → Configure**
 
-## Comportement / erreurs
+| Option | Default | Description |
+| --- | --- | --- |
+| Polling interval | 30 s | 15 / 30 / 60 / 120 / 300 s |
+| AUX1 name | Auxiliaire 1 | Friendly name for the AUX1 binary sensor |
+| AUX1 type | custom | `light` / `heating` / `electrolyzer` / `custom` → icon + device_class |
 
-- Polling HTTP simple, timeout **5 s**, intervalle par défaut **30 s**
-  (configurable : 15/30/60/120/300 s via les options).
-- `/api/data` en échec → capteurs de mesure indisponibles.
-- `/api/info` en échec → capteurs diagnostic indisponibles.
-- Les deux en échec → `UpdateFailed` (toutes les entités indisponibles).
-- Champ absent → l'entité concernée passe indisponible, sans planter.
+---
 
-## Licence
+## The `SC1` status word
 
-MIT — voir [LICENSE](LICENSE).
+`SC1` is a 32-bit status field. Confirmed bits (field-tested):
+
+| Bit | Mask | Meaning |
+| --- | --- | --- |
+| 14 | `0x4000` | pump running |
+| 19 | `0x80000` | manual command **ON** (transient override) |
+| 20 | `0x100000` | manual command **OFF** (transient override) |
+| 21 + 27 | `0x200000` + `0x8000000` | pump running in **auto** mode |
+| 22 | `0x400000` | **AUX1** output |
+
+`SC1 = 0` means idle (pump off, in auto). Manual override bits (19/20) are transient
+and clear after a few minutes back to auto.
+
+---
+
+## Help wanted: decode the unknown fields
+
+This is the fun part. Several fields are **not yet understood**, and Oklyn provides
+no public documentation. If you own an Oklyn controller, **you can help map them** —
+purely by reading, never by sending commands.
+
+### Still unknown
+
+| Field / bit | Current guess | What we need |
+| --- | --- | --- |
+| `HSN` | hardware serial (= `serial`) | confirm on other units |
+| `TIM` | Unix timestamp of the snapshot | confirm |
+| `OQT` / `PQT` | ORP / pH measurement quality (%) | confirm scale |
+| `BOX` | box temperature or status | values vs ambient |
+| `ATA` / `ATE` | air / water temp correction (`/100`?) | confirm |
+| `HPN` / `SPN` | constant here (2 / 10) — pump count? program? | values on other setups |
+| `ECM`, `SC2`, `AMG` | unknown | any correlation you observe |
+| **AUX2** | **not exposed locally** (firmware) | confirm on other firmware versions |
+| `SC1` bits 0–13, 15–18, 23–26, 28–31 | unused/unknown | any bit that toggles |
+| Other unlisted `/api/data` keys | — | report them |
+
+### How to contribute a reading
+
+1. **Grab a snapshot** (replace the IP):
+   ```bash
+   curl -s http://192.168.0.42/api/data
+   curl -s http://192.168.0.42/api/info   # mask mac/ssid/serial before sharing
+   ```
+   `/api/data` sometimes returns an empty body — just retry a few times.
+2. **Change one thing** on your controller (e.g. turn AUX2 on, switch pump to
+   manual, change a regulation setpoint) and grab a snapshot **before and after**.
+3. **Open an issue** with: the two snapshots, what you changed, your controller
+   model and firmware (`version` / `core_version` from `/api/info`), and the value
+   shown in the Oklyn app if relevant.
+
+   → [Open a "field decode" issue](https://github.com/ADNPolymerase/ha-oklyn-local/issues/new)
+
+A single bit that flips when you toggle something is often all it takes to map a
+new feature. Findings are credited in the changelog. 🙏
+
+> ⚠️ Before sharing `/api/info`, redact `mac`, `ssid` and `serial`.
+
+---
+
+## Error handling
+
+- Short HTTP timeout (5 s); polling default 30 s (configurable).
+- `/api/data` fails → measurement / pump / AUX entities become unavailable.
+- `/api/info` fails → diagnostic entities become unavailable.
+- Both fail → `UpdateFailed` (all entities unavailable).
+- A missing field never crashes — the affected entity just goes unavailable.
+- The controller often returns an **empty HTTP 200** on `/api/data`; the client
+  retries a few times per cycle to smooth this out.
+
+---
+
+## Known limitations (local API)
+
+- **AUX2 is not exposed locally** — turning it on changes no field. Use the cloud
+  integration for AUX2.
+- **AUX mode** (switch vs regulator) and **regulation setpoints** (pH, RedOx) are
+  not exposed locally — cloud/config only.
+- No pump/AUX control — read-only by design.
+- Single device per IP.
+
+---
+
+## Contributing
+
+Issues and pull requests welcome at
+<https://github.com/ADNPolymerase/ha-oklyn-local/issues>. Field-decode reports
+(see [Help wanted](#help-wanted-decode-the-unknown-fields)) are especially valuable.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

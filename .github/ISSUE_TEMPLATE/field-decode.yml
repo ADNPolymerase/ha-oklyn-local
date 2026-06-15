@@ -1,0 +1,54 @@
+name: "🔍 Field decode (help map unknown fields)"
+description: Share an /api/data + /api/info reading to help decode unknown Oklyn fields.
+title: "[decode] "
+labels: ["decode"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping map the Oklyn local API! This is **read-only** —
+        please never send commands to your controller for this.
+        ⚠️ **Redact `mac`, `ssid` and `serial`** from `/api/info` before pasting.
+  - type: input
+    id: firmware
+    attributes:
+      label: Controller firmware
+      description: "`version` and `core_version` from /api/info"
+      placeholder: "version 436 / core 3.0.2"
+    validations:
+      required: true
+  - type: textarea
+    id: changed
+    attributes:
+      label: What did you change between the two snapshots?
+      placeholder: "Turned AUX2 ON (switch mode), pump was off."
+    validations:
+      required: true
+  - type: textarea
+    id: before
+    attributes:
+      label: "/api/data — BEFORE the change"
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: after
+    attributes:
+      label: "/api/data — AFTER the change"
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: info
+    attributes:
+      label: "/api/info (mac / ssid / serial redacted)"
+      render: json
+    validations:
+      required: false
+  - type: textarea
+    id: app
+    attributes:
+      label: Value shown in the Oklyn app (if relevant)
+      placeholder: "App showed corrected RedOx = 600 mV"
+    validations:
+      required: false
