@@ -53,7 +53,9 @@ controller. It polls the controller directly over your LAN (HTTP, port 80) —
 4. Search for **Oklyn Local** and click **Download**.
 5. Restart Home Assistant.
 6. Go to **Settings → Devices & Services → Add Integration** and search for **Oklyn Local**.
-7. Enter the controller IP (e.g. `192.168.0.42`).
+7. Enter the controller IP (e.g. `192.168.1.100`).
+
+> 💡 **Tip:** assign a static IP (DHCP reservation) to your Oklyn controller in your router so the address never changes between reboots.
 
 ## Manual installation
 
@@ -162,8 +164,8 @@ purely by reading, never by sending commands.
 
 1. **Grab a snapshot** (replace the IP):
    ```bash
-   curl -s http://192.168.0.42/api/data
-   curl -s http://192.168.0.42/api/info   # mask mac/ssid/serial before sharing
+   curl -s http://IP_OKLYN/api/data
+   curl -s http://IP_OKLYN/api/info   # mask mac/ssid/serial before sharing
    ```
    `/api/data` sometimes returns an empty body — just retry a few times.
 2. **Change one thing** on your controller (e.g. turn AUX2 on, switch pump to

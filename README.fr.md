@@ -53,7 +53,9 @@ Intégration Home Assistant **locale et en lecture seule** pour le boîtier pisc
 4. Cherche **Oklyn Local** et clique **Télécharger**.
 5. Redémarre Home Assistant.
 6. **Paramètres → Appareils et services → Ajouter une intégration → Oklyn Local**.
-7. Saisis l'IP du boîtier (ex. `192.168.0.42`).
+7. Saisis l'IP du boîtier (ex. `192.168.1.100`).
+
+> 💡 **Conseil :** assigne une IP fixe (réservation DHCP) à ton boîtier Oklyn dans ton routeur pour que l'adresse ne change pas entre les redémarrages.
 
 ## Installation manuelle
 
@@ -163,8 +165,8 @@ commande.
 
 1. **Prends un snapshot** (remplace l'IP) :
    ```bash
-   curl -s http://192.168.0.42/api/data
-   curl -s http://192.168.0.42/api/info   # masque mac/ssid/serial avant de partager
+   curl -s http://IP_OKLYN/api/data
+   curl -s http://IP_OKLYN/api/info   # masque mac/ssid/serial avant de partager
    ```
    `/api/data` renvoie parfois un corps vide — réessaie quelques fois.
 2. **Change une seule chose** sur ton boîtier (ex. allumer AUX2, passer la pompe en
