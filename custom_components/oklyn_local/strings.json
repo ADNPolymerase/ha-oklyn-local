@@ -5,7 +5,7 @@
         "title": "Oklyn Local",
         "description": "Interrogation locale (lecture seule) du boîtier Oklyn. Aucune commande n'est envoyée.",
         "data": {
-          "host": "Adresse IP ou nom d'hôte du boîtier"
+          "host": "Adresse IP ou nom d'hôte du boîtier (ex. oklyn.local ou 192.168.1.100)"
         }
       }
     },

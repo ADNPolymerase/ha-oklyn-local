@@ -44,6 +44,10 @@ class OklynSensorDescription(SensorEntityDescription):
     # payload_fn reçoit TOUT le dict de l'endpoint (pour combiner 2 champs,
     # ex. mesure corrigée = brut + correction). Prioritaire sur value_fn/divide.
     payload_fn: Callable[[dict[str, Any]], Any] | None = None
+    # attrs_fn reçoit TOUT le dict de l'endpoint et retourne des attributs
+    # supplémentaires (ex. valeur brute sonde + offset) pour les capteurs
+    # "corrigés", afin de garder la traçabilité brut → correction → corrigé.
+    attrs_fn: Callable[[dict[str, Any]], dict[str, Any]] | None = None
 
 
 def _num(payload: dict[str, Any], field: str) -> float | None:
@@ -89,6 +93,29 @@ def _temp_air_corrigee(payload: dict[str, Any]) -> float | None:
     return (brut + corr) / DATA_DIVIDE["AIR"]
 
 
+def _raw_corrected_attrs(
+    raw_field: str, offset_field: str, divide: float
+) -> Callable[[dict[str, Any]], dict[str, Any]]:
+    """Construit un attrs_fn exposant raw / offset / corrigé sur un capteur "corrigé".
+
+    Garde la traçabilité du calcul sans dupliquer d'entités : la valeur brute
+    sonde et l'offset restent disponibles en attribut du capteur principal.
+    """
+
+    def _attrs(payload: dict[str, Any]) -> dict[str, Any]:
+        brut, off = _num(payload, raw_field), _num(payload, offset_field)
+        attrs: dict[str, Any] = {}
+        if brut is not None:
+            attrs[f"raw_{raw_field.lower()}"] = brut / divide
+        if off is not None:
+            attrs[f"offset_{offset_field.lower()}"] = off / divide
+        if brut is not None and off is not None:
+            attrs["corrected"] = (brut + off) / divide
+        return attrs
+
+    return _attrs
+
+
 # --- Mesures principales (converties) --------------------------------------
 MEASURE_SENSORS: tuple[OklynSensorDescription, ...] = (
     # --- Température eau : corrigée (principale) + sonde brute -------------
@@ -98,6 +125,7 @@ MEASURE_SENSORS: tuple[OklynSensorDescription, ...] = (
         source="data",
         field="EAU",
         payload_fn=_temp_eau_corrigee,   # (EAU + ATE) / 100 — confirmé 2026-06-15
+        attrs_fn=_raw_corrected_attrs("EAU", "ATE", DATA_DIVIDE["EAU"]),
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
@@ -122,6 +150,7 @@ MEASURE_SENSORS: tuple[OklynSensorDescription, ...] = (
         source="data",
         field="AIR",
         payload_fn=_temp_air_corrigee,   # (AIR + ATA) / 100 — confirmé 2026-06-15
+        attrs_fn=_raw_corrected_attrs("AIR", "ATA", DATA_DIVIDE["AIR"]),
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
@@ -160,6 +189,7 @@ MEASURE_SENSORS: tuple[OklynSensorDescription, ...] = (
         source="data",
         field="PH1",                 # champ requis pour la disponibilité
         payload_fn=_ph_corrige,      # (PH1 + APH) / 100
+        attrs_fn=_raw_corrected_attrs("PH1", "APH", DATA_DIVIDE["PH1"]),
         native_unit_of_measurement="pH",
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
@@ -181,6 +211,7 @@ MEASURE_SENSORS: tuple[OklynSensorDescription, ...] = (
         source="data",
         field="ORP",
         payload_fn=_redox_corrige,   # (ORP + ARX) / 10
+        attrs_fn=_raw_corrected_attrs("ORP", "ARX", DATA_DIVIDE["ORP"]),
         native_unit_of_measurement="mV",
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
@@ -416,3 +447,13 @@ class OklynLocalSensor(OklynLocalEntity, SensorEntity):
             except (TypeError, ValueError):
                 return None
         return raw
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        desc = self.entity_description
+        if desc.attrs_fn is None:
+            return None
+        payload = self._payload
+        if payload is None:
+            return None
+        return desc.attrs_fn(payload) or None

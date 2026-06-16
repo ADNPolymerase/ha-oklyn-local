@@ -38,7 +38,9 @@ controller. It polls the controller directly over your LAN (HTTP, port 80) —
 - **Auxiliary 1**: output state, with configurable name & type (light / heating / electrolyzer / custom)
 - **Diagnostics**: Wi-Fi signal, free memory, firmware/core/SDK versions, service/key/config flags
 - **Raw fields** exposed (disabled by default) for further analysis
-- Full UI configuration — IP and polling interval, no YAML
+- Corrected sensors (pH, RedOx, water/air temperature) expose `raw_*` / `offset_*` /
+  `corrected` as state attributes for full traceability
+- Full UI configuration — `oklyn.local` (mDNS) or IP, plus polling interval, no YAML
 - Short HTTP timeout, configurable polling (15 / 30 / 60 / 120 / 300 s)
 - Robust to the controller's intermittent empty responses (built-in retries)
 - English and French translations
@@ -53,9 +55,12 @@ controller. It polls the controller directly over your LAN (HTTP, port 80) —
 4. Search for **Oklyn Local** and click **Download**.
 5. Restart Home Assistant.
 6. Go to **Settings → Devices & Services → Add Integration** and search for **Oklyn Local**.
-7. Enter the controller IP (e.g. `192.168.1.100`).
+7. Enter the controller's host: either its mDNS name `oklyn.local`, or its IP address (e.g. `192.168.1.100`).
 
-> 💡 **Tip:** assign a static IP (DHCP reservation) to your Oklyn controller in your router so the address never changes between reboots.
+> 💡 **Tip:** `oklyn.local` works out of the box on most home networks (mDNS).
+> If your network doesn't resolve `.local` names (some routers / VLANs / Docker
+> setups don't), assign a static IP (DHCP reservation) to the controller instead
+> so the address never changes between reboots.
 
 ## Manual installation
 
@@ -65,15 +70,71 @@ controller. It polls the controller directly over your LAN (HTTP, port 80) —
 
 ---
 
+## Local discovery / mDNS
+
+The Oklyn controller advertises its local HTTP service through mDNS/zeroconf:
+
+```text
+_http._tcp.local → oklyn.local:80
+```
+
+Confirmed via:
+
+```bash
+dns-sd -B _http._tcp local        # → oklyn
+dns-sd -L oklyn _http._tcp local  # → oklyn.local.:80
+```
+
+Confirmed local endpoints (both work with the mDNS name or the IP):
+
+```text
+GET http://oklyn.local/api/info
+GET http://oklyn.local/api/data
+```
+
+If `.local` resolution doesn't work on your network (some routers / VLANs /
+Docker networks don't support mDNS), use the device's IP address instead — the
+config flow accepts either.
+
+---
+
 ## Endpoints used
 
 | Method | URL | Purpose |
 | --- | --- | --- |
-| `GET` | `http://<ip>/api/info` | controller technical info |
-| `GET` | `http://<ip>/api/data` | raw measurements + status word |
+| `GET` | `http://<host>/api/info` | controller technical info |
+| `GET` | `http://<host>/api/data` | raw measurements + status word |
 
 The local HTTP server is a **diagnostic + Wi-Fi provisioning portal**. It exposes
 **no command endpoint** — pump/AUX control is cloud-only by design.
+
+---
+
+## Network findings
+
+Local scans against a real controller (firmware `436`) showed:
+
+```text
+$ nmap -Pn -T4 --top-ports 1000 <ip>
+PORT   STATE SERVICE
+80/tcp open  http
+```
+
+- **TCP 80 open** — the local HTTP API documented here.
+- **No MQTT** (1883 / 8883), **no HTTPS** (443), **no alt-HTTP** (8080 / 8000) —
+  all closed/filtered.
+- **No CoAP** (UDP 5683) — closed.
+- **UDP 5353 open** — mDNS / zeroconf (see [Local discovery](#local-discovery--mdns) above).
+- MAC vendor prefix resolves to **Espressif** — the controller is ESP-based.
+- All other scanned TCP/UDP ports were filtered or closed — no other local
+  service was found.
+
+No local command endpoint for the pump, AUX1 or AUX2 was found (see
+[Reverse engineering notes](#reverse-engineering-notes) below for the full list
+of paths tried). Commands appear to be cloud-only: traffic captures show the
+controller calling `iot.oklyn.fr` (CNAME `esp.api.oklyn.fr`). This is mentioned
+here for diagnostic purposes only — **this integration never talks to that
+domain**.
 
 ---
 
@@ -94,6 +155,10 @@ The local HTTP server is a **diagnostic + Wi-Fi provisioning portal**. It expose
 > `APH` / `ARX` / `ATA` / `ATE` are **additive probe corrections** applied by the
 > controller. Corrected sensors match what the Oklyn app shows.
 > Validated: `ATE = 100` = +1.0 °C, `ATA = -40` = −0.4 °C (field-tested 2026-06-15).
+>
+> The 4 corrected sensors (`ph`, `redox`, `temperature_eau`, `temperature_air`)
+> also expose `raw_<field>`, `offset_<field>` and `corrected` as **state
+> attributes**, so the full calculation stays visible without extra entities.
 
 ### Pump & Auxiliary 1 (decoded from `SC1`)
 | Entity | Source | Detail |
@@ -217,14 +282,69 @@ new feature. Findings are credited in the changelog. 🙏
 
 ---
 
+## Read-only limitation
+
+**This integration is read-only.** It does not and cannot currently:
+
+- control the filtration pump;
+- control AUX1;
+- control AUX2;
+- change Oklyn schedules / regulation setpoints;
+- change Wi-Fi settings;
+- replace the Oklyn cloud for any command.
+
+It will never send `POST`/`PUT` to the controller (including `/wifi-try`), and
+performs no aggressive scanning beyond the documented `GET` requests.
+
 ## Known limitations (local API)
 
-- **AUX2 is not exposed locally** — turning it on changes no field. Use the cloud
-  integration for AUX2.
+- **No local command endpoint was found** — see [Reverse engineering notes](#reverse-engineering-notes).
+- **AUX2 state is not currently exposed** in `/api/data` — turning it on changes
+  no field. Use the cloud integration for AUX2.
 - **AUX mode** (switch vs regulator) and **regulation setpoints** (pH, RedOx) are
   not exposed locally — cloud/config only.
-- No pump/AUX control — read-only by design.
-- Single device per IP.
+- The cloud/API is still required for native Oklyn commands.
+- Single device per host.
+
+---
+
+## Reverse engineering notes
+
+These paths were tried against a real controller (firmware `436`) and all
+returned `404 Not Found` (including `OPTIONS`). Recorded here so others don't
+have to repeat the same tests:
+
+```text
+/api/status        /api/last_values    /api/pump           /api/aux
+/api/aux2           /api/relay          /api/relays          /api/ph
+/api/orp            /api/measure        /api/measures        /api/config
+/api/device         /api/schedules      /api/errors           /api/alerts
+/status  /data  /pump  /aux  /aux2  /relay  /relays  /ph  /orp  /measure  /measures
+```
+
+The controller's own local web UI (`http://oklyn.local/`) only references:
+
+```text
+/api/info  /api/wifi  /wifi-scan  /wifi-try
+```
+
+Its HTML/JS contains no route referencing `pump`, `aux`, `aux2`, `relay`,
+`pompe`, `filtration`, `gpio` or `output` — confirming the local server only
+serves diagnostics + Wi-Fi provisioning, not control. If you find a working
+command endpoint on a different firmware version, please
+[open an issue](https://github.com/ADNPolymerase/ha-oklyn-local/issues/new) —
+don't add it to this integration without discussion (see
+[Read-only limitation](#read-only-limitation) above).
+
+---
+
+## Summary
+
+Oklyn exposes useful local measurement data over HTTP. The controller can be
+discovered as `oklyn.local` through mDNS. Only TCP port 80 and UDP port 5353
+were found open locally. No local command endpoint for the pump, AUX1 or AUX2
+has been found so far. **This integration is therefore intentionally
+read-only.**
 
 ---
 

@@ -5,7 +5,7 @@
         "title": "Oklyn Local",
         "description": "Local read-only polling of the Oklyn controller. No command is ever sent.",
         "data": {
-          "host": "Controller IP address or hostname"
+          "host": "Controller IP address or hostname (e.g. oklyn.local or 192.168.1.100)"
         }
       }
     },
@@ -33,13 +33,18 @@
   "entity": {
     "sensor": {
       "temperature_eau": { "name": "Water temperature" },
+      "temperature_eau_sonde": { "name": "Water temperature probe" },
       "temperature_air": { "name": "Air temperature" },
+      "temperature_air_sonde": { "name": "Air temperature probe" },
+      "temperature_boitier": { "name": "Controller temperature" },
       "redox": { "name": "Redox corrected" },
       "redox_sonde": { "name": "Redox probe" },
       "ph": { "name": "pH corrected" },
       "ph_sonde": { "name": "pH probe" },
       "offset_ph": { "name": "pH offset" },
       "offset_redox": { "name": "Redox offset" },
+      "offset_temp_eau": { "name": "Water temperature offset" },
+      "offset_temp_air": { "name": "Air temperature offset" },
       "wifi_signal": { "name": "Wi-Fi signal" },
       "memory_free": { "name": "Free memory" },
       "version": { "name": "Version" },
