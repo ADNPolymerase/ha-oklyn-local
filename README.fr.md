@@ -37,6 +37,7 @@ Intégration Home Assistant **locale et en lecture seule** pour le boîtier pisc
 - **Pompe** : état de marche + mode (`auto` / `manuel`), décodés du mot d'état `SC1`
 - **Auxiliaire 1** : état de sortie, avec nom & type configurables (lumière / chauffage / électrolyseur / personnalisé)
 - **Diagnostic** : signal Wi-Fi, mémoire libre, versions firmware/core/SDK, indicateurs service/clef/config
+- **Liaison routeur** : l'adresse MAC du boîtier est enregistrée dans le registre des appareils HA — HA fait automatiquement le lien avec ton intégration routeur (Livebox, Freebox, UniFi…)
 - **Champs bruts** exposés (désactivés par défaut) pour analyse
 - Les capteurs corrigés (pH, RedOx, température eau/air) exposent `raw_*` /
   `offset_*` / `corrected` en attributs d'état pour une traçabilité complète

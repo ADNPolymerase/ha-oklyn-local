@@ -37,6 +37,7 @@ controller. It polls the controller directly over your LAN (HTTP, port 80) —
 - **Pump**: running state + mode (`auto` / `manuel`), decoded from the `SC1` status word
 - **Auxiliary 1**: output state, with configurable name & type (light / heating / electrolyzer / custom)
 - **Diagnostics**: Wi-Fi signal, free memory, firmware/core/SDK versions, service/key/config flags
+- **Router linking**: the controller's MAC address is registered in the HA device registry — HA automatically links the device to your router integration (e.g. Livebox, Freebox, UniFi…)
 - **Raw fields** exposed (disabled by default) for further analysis
 - Corrected sensors (pH, RedOx, water/air temperature) expose `raw_*` / `offset_*` /
   `corrected` as state attributes for full traceability

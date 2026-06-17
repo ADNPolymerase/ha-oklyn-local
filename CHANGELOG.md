@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.6
+
+- Device registry: the controller's MAC address is now registered via
+  `CONNECTION_NETWORK_MAC` — HA automatically links the device to the router
+  integration (Livebox, Freebox, UniFi, etc.).
+
 ## 0.1.5
 
 - Resilience: coordinator caches last known good data — entities stay available
