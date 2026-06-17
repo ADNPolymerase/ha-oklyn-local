@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.4
+
+- Resilience: coordinator now caches last known good data. On polling failure,
+  entities stay available with the most recently received values instead of going
+  unavailable. A warning is logged with the last `TIM` timestamp.
+- New diagnostic sensor `derniere_mesure` (enabled by default): exposes the `TIM`
+  field as a proper HA timestamp, showing exactly when the controller last refreshed
+  its snapshot — useful to spot stale data at a glance.
+
 ## 0.1.3
 
 - Decoded `ATA` / `ATE` as additive air/water temperature corrections (field-tested
