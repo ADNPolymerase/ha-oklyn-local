@@ -43,6 +43,8 @@ controller. It polls the controller directly over your LAN (HTTP, port 80) —
 - Full UI configuration — `oklyn.local` (mDNS) or IP, plus polling interval, no YAML
 - Short HTTP timeout, configurable polling (15 / 30 / 60 / 120 / 300 s)
 - Robust to the controller's intermittent empty responses (built-in retries)
+- **Last known good cache** — entities stay available on transient failures; a
+  `Dernière mesure boîtier` timestamp sensor shows when data was last refreshed
 - English and French translations
 
 ---
@@ -167,9 +169,13 @@ domain**.
 | `sensor.…_pompe_mode` | `SC1` bits 19/20 | `auto` / `manuel` |
 | `binary_sensor.…_aux1` | `SC1` bit 22 | AUX1 output; **name + type** configurable |
 
-### Diagnostics (`/api/info`)
+### Diagnostics (`/api/info` + `/api/data`)
 Wi-Fi signal (dBm), free memory (bytes), `version`, `core_version`, `sdk_version`,
 and binary sensors `service_granted`, `key_valid`, `config_valid`.
+
+`sensor.…_derniere_mesure` — timestamp of the controller's last internal snapshot
+(`TIM` field, ~5 min refresh cycle). Stays frozen when the cache is being served,
+making stale data easy to spot.
 
 ### Raw fields (`/api/data`, disabled by default)
 `HSN, TIM, SC1, BOX, OQT, PQT, HPN, SPN, SC2, ECM, APH, ARX, AMG, ATA, ATE` — exposed
@@ -273,9 +279,11 @@ new feature. Findings are credited in the changelog. 🙏
 ## Error handling
 
 - Short HTTP timeout (5 s); polling default 30 s (configurable).
-- `/api/data` fails → measurement / pump / AUX entities become unavailable.
-- `/api/info` fails → diagnostic entities become unavailable.
-- Both fail → `UpdateFailed` (all entities unavailable).
+- `/api/data` fails → last known values are served from cache; entities stay available.
+- `/api/info` fails → last known values are served from cache; entities stay available.
+- Both fail AND no data has ever been received → `UpdateFailed` (all entities unavailable).
+- On cache use, a warning is logged with the last `TIM` timestamp; the
+  `Dernière mesure boîtier` sensor freezes, making stale data visible.
 - A missing field never crashes — the affected entity just goes unavailable.
 - The controller often returns an **empty HTTP 200** on `/api/data`; the client
   retries a few times per cycle to smooth this out.
