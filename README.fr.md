@@ -43,6 +43,9 @@ Intégration Home Assistant **locale et en lecture seule** pour le boîtier pisc
 - Configuration UI complète — `oklyn.local` (mDNS) ou IP, intervalle de polling, pas de YAML
 - Timeout HTTP court, polling configurable (15 / 30 / 60 / 120 / 300 s)
 - Robuste aux réponses vides intermittentes du boîtier (retries intégrés)
+- **Cache des dernières valeurs connues** — les entités restent disponibles en cas
+  de défaillance transitoire ; un capteur `Dernière mesure boîtier` indique quand
+  les données ont été rafraîchies pour la dernière fois
 - Traductions française et anglaise
 
 ---
@@ -170,9 +173,13 @@ domaine**.
 | `sensor.…_pompe_mode` | `SC1` bits 19/20 | `auto` / `manuel` |
 | `binary_sensor.…_aux1` | `SC1` bit 22 | sortie AUX1 ; **nom + type** configurables |
 
-### Diagnostic (`/api/info`)
+### Diagnostic (`/api/info` + `/api/data`)
 Signal Wi-Fi (dBm), mémoire libre (octets), `version`, `core_version`, `sdk_version`,
 et binary sensors `service_granted`, `key_valid`, `config_valid`.
+
+`sensor.…_derniere_mesure` — horodatage du dernier snapshot interne du boîtier
+(champ `TIM`, cycle de rafraîchissement ~5 min). Se fige quand le cache est servi,
+rendant les données périmées immédiatement visibles.
 
 ### Champs bruts (`/api/data`, désactivés par défaut)
 `HSN, TIM, SC1, BOX, OQT, PQT, HPN, SPN, SC2, ECM, APH, ARX, AMG, ATA, ATE` — exposés
@@ -277,9 +284,11 @@ nouvelle fonction. Les contributions sont créditées dans le changelog. 🙏
 ## Gestion des erreurs
 
 - Timeout HTTP court (5 s) ; polling 30 s par défaut (configurable).
-- `/api/data` échoue → capteurs mesure / pompe / AUX indisponibles.
-- `/api/info` échoue → capteurs diagnostic indisponibles.
-- Les deux échouent → `UpdateFailed` (toutes les entités indisponibles).
+- `/api/data` échoue → les dernières valeurs connues sont servies depuis le cache ; les entités restent disponibles.
+- `/api/info` échoue → les dernières valeurs connues sont servies depuis le cache ; les entités restent disponibles.
+- Les deux échouent ET aucune donnée n'a jamais été reçue → `UpdateFailed` (toutes les entités indisponibles).
+- En cas d'utilisation du cache, un warning est loggé avec le dernier `TIM` ; le
+  capteur `Dernière mesure boîtier` se fige, rendant les données périmées visibles.
 - Un champ absent ne plante jamais — l'entité concernée passe indisponible.
 - Le boîtier renvoie souvent un **HTTP 200 vide** sur `/api/data` ; le client
   réessaie plusieurs fois par cycle pour lisser ces blips.
