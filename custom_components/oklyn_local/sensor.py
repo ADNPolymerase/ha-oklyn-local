@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -225,6 +226,17 @@ MEASURE_SENSORS: tuple[OklynSensorDescription, ...] = (
         native_unit_of_measurement="mV",
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
+    ),
+    # --- Horodatage du snapshot boîtier ------------------------------------
+    OklynSensorDescription(
+        key="derniere_mesure",
+        translation_key="derniere_mesure",
+        source="data",
+        field="TIM",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        # value_fn convertit le timestamp Unix (int) en datetime UTC aware.
+        value_fn=lambda v: datetime.fromtimestamp(int(v), tz=UTC),
     ),
     # --- Corrections appliquées (APH/ARX), diagnostic ---------------------
     OklynSensorDescription(
