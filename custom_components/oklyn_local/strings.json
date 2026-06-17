@@ -41,6 +41,7 @@
       "redox_sonde": { "name": "Redox sonde" },
       "ph": { "name": "pH corrigé" },
       "ph_sonde": { "name": "pH sonde" },
+      "derniere_mesure": { "name": "Dernière mesure boîtier" },
       "offset_ph": { "name": "Offset pH" },
       "offset_redox": { "name": "Offset Redox" },
       "offset_temp_eau": { "name": "Offset température eau" },
