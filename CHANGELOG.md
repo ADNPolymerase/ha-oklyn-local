@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.5
+
+- Resilience: coordinator caches last known good data — entities stay available
+  with the most recently received values on polling failure instead of going
+  unavailable. A warning is logged with the last `TIM` timestamp.
+- New diagnostic sensor `Dernière mesure boîtier` (enabled by default): exposes
+  the `TIM` field as an HA timestamp — frozen value = cache in use.
+
 ## 0.1.4
 
 - Resilience: coordinator now caches last known good data. On polling failure,
