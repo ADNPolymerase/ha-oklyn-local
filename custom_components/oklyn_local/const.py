@@ -84,4 +84,5 @@ DATA_DIVIDE = {
     "ATA": 100,   # correction temp air (additive, °C) — confirmé 2026-06-15
     "ATE": 100,   # correction temp eau (additive, °C) — confirmé 2026-06-15
     "BOX": 1,     # température interne boîtier (°C, entier) — probable
+    "ECM": 1000,  # concentration sel (g/L) — confirmé 2026-06-18 (ECM=2404 → 2,4 g/L)
 }

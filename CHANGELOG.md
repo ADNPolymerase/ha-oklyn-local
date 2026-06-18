@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.7
+
+- New sensor `Sel` (`sensor.oklyn_sel`, g/L): decoded from the `ECM` field
+  (`ECM / 1000`), confirmed field-tested 2026-06-18 (ECM=2404 → 2.4 g/L).
+  Disabled by default — enable it in HA for salt pool models.
+- `ECM` removed from raw diagnostic fields (now a proper decoded sensor).
+
 ## 0.1.6
 
 - Device registry: the controller's MAC address is now registered via
