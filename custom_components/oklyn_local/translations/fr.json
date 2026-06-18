@@ -62,7 +62,8 @@
       "service_granted": { "name": "Service Oklyn autorisé" },
       "key_valid": { "name": "Clef valide" },
       "config_valid": { "name": "Configuration valide" },
-      "pompe": { "name": "Pompe" }
+      "pompe": { "name": "Pompe" },
+      "aux2": { "name": "Auxiliaire 2" }
     }
   }
 }
