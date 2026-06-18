@@ -34,6 +34,7 @@ Intégration Home Assistant **locale et en lecture seule** pour le boîtier pisc
 - **pH** — corrigé (`(PH1 + APH) / 100`) et valeur brute sonde
 - **RedOx / ORP** — corrigé (`(ORP + ARX) / 10`, mV) et valeur brute sonde
 - Température **eau** et **air** (°C)
+- **Sel** (piscines au sel) : concentration en g/L — décodée du champ `ECM` (`ECM / 1000`), désactivée par défaut, à activer dans HA si ta piscine est au sel
 - **Pompe** : état de marche + mode (`auto` / `manuel`), décodés du mot d'état `SC1`
 - **Auxiliaire 1** : état de sortie, avec nom & type configurables (lumière / chauffage / électrolyseur / personnalisé)
 - **Diagnostic** : signal Wi-Fi, mémoire libre, versions firmware/core/SDK, indicateurs service/clef/config

@@ -227,6 +227,18 @@ MEASURE_SENSORS: tuple[OklynSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
     ),
+    # --- Sel (piscines au sel uniquement) ---------------------------------
+    OklynSensorDescription(
+        key="sel",
+        translation_key="sel",
+        source="data",
+        field="ECM",
+        divide=DATA_DIVIDE["ECM"],   # ECM / 1000 → g/L — confirmé 2026-06-18
+        native_unit_of_measurement="g/L",
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+        entity_registry_enabled_default=False,
+    ),
     # --- Horodatage du snapshot boîtier ------------------------------------
     OklynSensorDescription(
         key="derniere_mesure",
@@ -336,7 +348,7 @@ INFO_SENSORS: tuple[OklynSensorDescription, ...] = (
 # Exposés tels quels, désactivés par défaut pour ne pas polluer l'UI.
 RAW_DATA_FIELDS = (
     "HSN", "TIM", "SC1", "BOX", "OQT", "PQT", "HPN",
-    "SPN", "SC2", "ECM", "APH", "ARX", "AMG", "ATA", "ATE",
+    "SPN", "SC2", "APH", "ARX", "AMG", "ATA", "ATE",
 )
 
 RAW_SENSORS: tuple[OklynSensorDescription, ...] = tuple(

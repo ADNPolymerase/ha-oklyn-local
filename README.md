@@ -34,6 +34,7 @@ controller. It polls the controller directly over your LAN (HTTP, port 80) —
 - **pH** — corrected (`(PH1 + APH) / 100`) and raw probe value
 - **RedOx / ORP** — corrected (`(ORP + ARX) / 10`, mV) and raw probe value
 - **Water** and **air** temperature (°C)
+- **Salt** (salt pool models): concentration in g/L — decoded from the `ECM` field (`ECM / 1000`), disabled by default, enable it in HA if your pool uses salt
 - **Pump**: running state + mode (`auto` / `manuel`), decoded from the `SC1` status word
 - **Auxiliary 1**: output state, with configurable name & type (light / heating / electrolyzer / custom)
 - **Diagnostics**: Wi-Fi signal, free memory, firmware/core/SDK versions, service/key/config flags
