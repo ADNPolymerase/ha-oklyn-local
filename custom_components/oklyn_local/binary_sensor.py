@@ -8,8 +8,7 @@ Depuis /api/info :
 Décodés depuis /api/data (champ SC1, bitfield d'état) :
   - pompe           : pompe en marche (bit 14)
   - aux1            : sortie relais AUX1 (bit 22), nom/type configurables
-
-AUX2 n'est PAS exposé par le boîtier en local → pas de capteur AUX2 ici.
+  - aux2            : sortie relais AUX2 (bit 23) — confirmé terrain 2026-06-18 (beta)
 """
 from __future__ import annotations
 
@@ -35,6 +34,7 @@ from .const import (
     OPT_AUX1_NAME,
     OPT_AUX1_TYPE,
     SC1_AUX1,
+    SC1_AUX2,
     SC1_PUMP_RUNNING,
 )
 from .coordinator import OklynLocalCoordinator
@@ -101,6 +101,7 @@ async def async_setup_entry(
     ]
     entities.append(OklynPumpRunningBinarySensor(coordinator))
     entities.append(OklynAux1BinarySensor(coordinator, entry))
+    entities.append(OklynAux2BinarySensor(coordinator))
     async_add_entities(entities)
 
 
@@ -154,6 +155,19 @@ class OklynAux1BinarySensor(_OklynSc1BitBinarySensor):
             self._attr_device_class, self._attr_icon = presentation
         else:  # custom
             self._attr_device_class = BinarySensorDeviceClass.POWER
+
+
+class OklynAux2BinarySensor(_OklynSc1BitBinarySensor):
+    """Sortie AUX2 (SC1 bit 23) — beta, en attente de confirmation terrain."""
+
+    _bit = SC1_AUX2
+    _attr_translation_key = "aux2"
+    _attr_device_class = BinarySensorDeviceClass.POWER
+
+    def __init__(self, coordinator: OklynLocalCoordinator) -> None:
+        super().__init__(coordinator)
+        serial = next(iter(self._attr_device_info["identifiers"]))[1]
+        self._attr_unique_id = f"{serial}_aux2"
 
 
 class OklynLocalBinarySensor(OklynLocalEntity, BinarySensorEntity):

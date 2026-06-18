@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.8b1 (beta)
+
+- **Beta** : new `binary_sensor` AUX2 (`Auxiliaire 2`), decoded from SC1 bit 23.
+  Confirmed by field test 2026-06-18 (kurtenweb, SC1 diff = 2²³ = 8 388 608
+  on AUX2 ON→OFF toggle). Awaiting confirmation on a second installation.
+  To verify: enable the entity and compare its state with the physical AUX2 relay.
+
 ## 0.1.7
 
 - New sensor `Sel` (`sensor.oklyn_sel`, g/L): decoded from the `ECM` field

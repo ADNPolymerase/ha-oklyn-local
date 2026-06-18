@@ -57,6 +57,7 @@ SC1_MANUAL_OFF = 20      # commande manuelle OFF (transitoire)
 SC1_AUTO_A = 21          # marche en mode auto
 SC1_AUTO_B = 27          # marche en mode auto (2e bit)
 SC1_AUX1 = 22            # sortie relais AUX1 (indépendante de la pompe)
+SC1_AUX2 = 23            # sortie relais AUX2 — confirmé terrain 2026-06-18 (kurtenweb)
 
 # Endpoints locaux connus ---------------------------------------------------
 ENDPOINT_INFO = "/api/info"
