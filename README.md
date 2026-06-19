@@ -243,6 +243,9 @@ and clear after a few minutes back to auto.
 > changes AUX2 state. This is a firmware/hardware limitation of the ESP controller itself —
 > the local integration reads SC1 correctly and at the configured polling interval (as fast
 > as 15 s), but it is reading a register that lags the actual relay state by ~2 min.
+> **Consequence:** if a cloud command turns AUX2 ON for less than ~2 minutes, the local
+> integration will never see the ON state at all — SC1 bit 23 has not had time to update
+> before the OFF command is already received by the controller.
 > If you have an idea on how to work around this (e.g. a local endpoint that reflects AUX2
 > state more promptly, or a different SC1 bit that updates faster), please open an issue —
 > though a fix seems unlikely without access to the firmware.

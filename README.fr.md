@@ -247,6 +247,9 @@ transitoires et s'effacent au bout de quelques minutes (retour auto).
 > cloud sur AUX2. Il s'agit d'une limitation firmware/hardware du boîtier ESP lui-même —
 > l'intégration locale lit SC1 correctement et à l'intervalle de polling configuré (jusqu'à
 > 15 s), mais elle lit un registre qui accuse ~2 min de retard sur l'état réel du relais.
+> **Conséquence :** si une commande cloud allume AUX2 pendant moins de ~2 minutes, l'intégration
+> locale ne verra jamais l'état ON — le bit 23 de SC1 n'a pas eu le temps de basculer avant
+> que la commande OFF soit déjà reçue par le boîtier.
 > Si tu as une piste pour contourner ce problème (ex. un endpoint local reflétant l'état AUX2
 > plus rapidement, ou un autre bit SC1 qui se met à jour plus vite), ouvre une issue —
 > bien qu'un correctif semble peu probable sans accès au firmware.
