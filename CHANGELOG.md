@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.9
+
+- **AUX2** : sortie relais AUX2 (SC1 bit 23) — entité `binary_sensor` confirmée terrain
+  (kurtenweb + JD, 2026-06-18/19). Nom et type configurables dans les options (Lumière /
+  Chauffage / Électrolyseur / Autre), identique à AUX1.
+- **Fix** : options — intervalle et type AUX affiché comme dropdown (`SelectSelector`),
+  valeur courante pré-sélectionnée à la réouverture.
+- **Fix** : `Dernière mesure boîtier` affichait l'heure 2h dans le futur — le boîtier
+  stocke TIM en heure locale sans offset UTC ; corrigé en réinterprétant dans le fuseau HA.
+- **Sel** : capteur `sensor.oklyn_sel` (g/L, désactivé par défaut) — champ ECM / 1000,
+  pour piscines au sel uniquement.
+- **MAC** : adresse MAC enregistrée dans le device registry — HA lie automatiquement le
+  boîtier à l'intégration routeur (Livebox, Freebox, UniFi…).
+
 ## 0.1.8b3 (beta)
 
 - **Fix** : intervalle d'interrogation affiché comme dropdown (SelectSelector)
