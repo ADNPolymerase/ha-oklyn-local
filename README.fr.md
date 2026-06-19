@@ -242,6 +242,15 @@ Les tests terrain montrent une séparation nette : `/api/data` expose les **mesu
 `SC1 = 0` = repos (pompe arrêtée, en auto). Les bits d'override manuel (19/20) sont
 transitoires et s'effacent au bout de quelques minutes (retour auto).
 
+> ⚠️ **Délai de propagation AUX2 (~2 min) :** les tests terrain (2026-06-19) montrent que
+> le boîtier met environ **2 minutes** à mettre à jour le bit 23 de SC1 après une commande
+> cloud sur AUX2. Il s'agit d'une limitation firmware/hardware du boîtier ESP lui-même —
+> l'intégration locale lit SC1 correctement et à l'intervalle de polling configuré (jusqu'à
+> 15 s), mais elle lit un registre qui accuse ~2 min de retard sur l'état réel du relais.
+> Si tu as une piste pour contourner ce problème (ex. un endpoint local reflétant l'état AUX2
+> plus rapidement, ou un autre bit SC1 qui se met à jour plus vite), ouvre une issue —
+> bien qu'un correctif semble peu probable sans accès au firmware.
+
 ---
 
 ## Appel à l'aide : décoder les champs inconnus

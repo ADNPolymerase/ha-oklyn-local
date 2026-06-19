@@ -238,6 +238,15 @@ Field-testing shows a clear split: `/api/data` exposes **real-time physical meas
 `SC1 = 0` means idle (pump off, in auto). Manual override bits (19/20) are transient
 and clear after a few minutes back to auto.
 
+> ⚠️ **AUX2 propagation delay (~2 min):** field testing (2026-06-19) shows that the
+> controller takes approximately **2 minutes** to update SC1 bit 23 after a cloud command
+> changes AUX2 state. This is a firmware/hardware limitation of the ESP controller itself —
+> the local integration reads SC1 correctly and at the configured polling interval (as fast
+> as 15 s), but it is reading a register that lags the actual relay state by ~2 min.
+> If you have an idea on how to work around this (e.g. a local endpoint that reflects AUX2
+> state more promptly, or a different SC1 bit that updates faster), please open an issue —
+> though a fix seems unlikely without access to the firmware.
+
 ---
 
 ## Help wanted: decode the unknown fields
