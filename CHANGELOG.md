@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.8b2 (beta)
+
+- **Fix** : l'intervalle d'interrogation dans les options sautait / ne se sauvegardait pas
+  (`vol.Coerce(int)` ajouté — HA renvoie la valeur en string depuis le formulaire).
+- **Fix** : `Dernière mesure boîtier` affichait l'heure 2h dans le futur.
+  Le boîtier stocke TIM en heure locale (France) sans offset UTC ;
+  la conversion réinterprète maintenant la valeur comme heure locale
+  puis la convertit en vrai UTC (basé sur le fuseau HA configuré).
+
 ## 0.1.8b1 (beta)
 
 - **Beta** : new `binary_sensor` AUX2 (`Auxiliaire 2`), decoded from SC1 bit 23.
