@@ -164,12 +164,13 @@ domain**.
 > also expose `raw_<field>`, `offset_<field>` and `corrected` as **state
 > attributes**, so the full calculation stays visible without extra entities.
 
-### Pump & Auxiliary 1 (decoded from `SC1`)
+### Pump, Auxiliary 1 & Auxiliary 2 (decoded from `SC1`)
 | Entity | Source | Detail |
 | --- | --- | --- |
 | `binary_sensor.…_pompe` | `SC1` bit 14 | pump running (real flow) |
 | `sensor.…_pompe_mode` | `SC1` bits 19/20 | `auto` / `manuel` |
 | `binary_sensor.…_aux1` | `SC1` bit 22 | AUX1 output; **name + type** configurable |
+| `binary_sensor.…_aux2` | `SC1` bit 23 | AUX2 output; **name + type** configurable — confirmed field-tested 2026-06-18 (kurtenweb) |
 
 ### Diagnostics (`/api/info` + `/api/data`)
 Wi-Fi signal (dBm), free memory (bytes), `version`, `core_version`, `sdk_version`,
@@ -180,8 +181,9 @@ and binary sensors `service_granted`, `key_valid`, `config_valid`.
 making stale data easy to spot.
 
 ### Raw fields (`/api/data`, disabled by default)
-`HSN, TIM, SC1, BOX, OQT, PQT, HPN, SPN, SC2, ECM, APH, ARX, AMG, ATA, ATE` — exposed
+`HSN, TIM, SC1, BOX, OQT, PQT, HPN, SPN, SC2, APH, ARX, AMG, ATA, ATE` — exposed
 as-is for analysis. Enable per field in the entity settings.
+(`ECM` is no longer a raw field — it is the decoded **Sel** sensor.)
 
 ---
 
@@ -191,9 +193,11 @@ as-is for analysis. Enable per field in the entity settings.
 
 | Option | Default | Description |
 | --- | --- | --- |
-| Polling interval | 30 s | 15 / 30 / 60 / 120 / 300 s |
+| Polling interval | 30 s | 15 / 30 / 60 / 120 / 300 s — shown as a dropdown with the current value pre-selected |
 | AUX1 name | Auxiliaire 1 | Friendly name for the AUX1 binary sensor |
 | AUX1 type | custom | `light` / `heating` / `electrolyzer` / `custom` → icon + device_class |
+| AUX2 name | Auxiliaire 2 | Friendly name for the AUX2 binary sensor |
+| AUX2 type | custom | `light` / `heating` / `electrolyzer` / `custom` → icon + device_class |
 
 ---
 
@@ -204,6 +208,7 @@ Field-testing shows a clear split: `/api/data` exposes **real-time physical meas
 | Parameter | Local `/api/data` |
 |---|---|
 | AUX1 ON/OFF | ✅ `SC1` bit 22 |
+| AUX2 ON/OFF | ✅ `SC1` bit 23 — confirmed field-tested 2026-06-18 |
 | Pump ON/OFF/auto | ✅ `SC1` bits 14/19/20 |
 | pH probe correction (`APH`) | ✅ field `APH` |
 | RedOx probe correction (`ARX`) | ✅ field `ARX` |
@@ -214,7 +219,6 @@ Field-testing shows a clear split: `/api/data` exposes **real-time physical meas
 | Frost protection setpoint | ❌ cloud only |
 | Filtration mode (auto / fixed) | ❌ cloud only |
 | Regulation setpoints (pH, RedOx) | ❌ cloud only |
-| AUX2 state | ❌ not exposed locally (firmware) |
 
 ---
 
@@ -229,6 +233,7 @@ Field-testing shows a clear split: `/api/data` exposes **real-time physical meas
 | 20 | `0x100000` | manual command **OFF** (transient override) |
 | 21 + 27 | `0x200000` + `0x8000000` | pump running in **auto** mode |
 | 22 | `0x400000` | **AUX1** output |
+| 23 | `0x800000` | **AUX2** output — confirmed field-tested 2026-06-18 (kurtenweb) |
 
 `SC1 = 0` means idle (pump off, in auto). Manual override bits (19/20) are transient
 and clear after a few minutes back to auto.
@@ -246,13 +251,12 @@ purely by reading, never by sending commands.
 | Field / bit | Current guess | What we need |
 | --- | --- | --- |
 | `HSN` | hardware serial (= `serial`) | confirm on other units |
-| `TIM` | Unix timestamp of the snapshot | confirm |
+| `TIM` | Unix timestamp of the snapshot (local time, no UTC offset) | confirm on other timezones |
 | `OQT` / `PQT` | ORP / pH measurement quality (%) | confirm scale |
 | `BOX` | controller internal temperature (°C, probable) | confirm vs ambient |
 | `HPN` / `SPN` | constant here (2 / 10) — pump count? program? | values on other setups |
-| `ECM`, `SC2`, `AMG` | unknown | any correlation you observe |
-| **AUX2** | **not exposed locally** (firmware) | confirm on other firmware versions |
-| `SC1` bits 0–13, 15–18, 23–26, 28–31 | unused/unknown | any bit that toggles |
+| `SC2`, `AMG` | unknown | any correlation you observe |
+| `SC1` bits 0–13, 15–18, 24–26, 28–31 | unused/unknown | any bit that toggles |
 | Other unlisted `/api/data` keys | — | report them |
 
 ### How to contribute a reading
@@ -281,14 +285,17 @@ new feature. Findings are credited in the changelog. 🙏
 ## Error handling
 
 - Short HTTP timeout (5 s); polling default 30 s (configurable).
-- `/api/data` fails → last known values are served from cache; entities stay available.
-- `/api/info` fails → last known values are served from cache; entities stay available.
+- `/api/data` or `/api/info` fails → last known values are served from cache; entities stay available.
+- Cache expires after **3 × polling interval** (e.g. 45 s at 15 s polling) — beyond that the
+  entities go unavailable instead of serving a stale state (e.g. AUX showing ON long after a dropout).
 - Both fail AND no data has ever been received → `UpdateFailed` (all entities unavailable).
 - On cache use, a warning is logged with the last `TIM` timestamp; the
   `Dernière mesure boîtier` sensor freezes, making stale data visible.
+- **Re-poll on recovery**: when the controller comes back after an HTTP dropout, an extra poll is
+  triggered 1 s later — the fresh state replaces the cache without waiting a full polling cycle.
 - A missing field never crashes — the affected entity just goes unavailable.
 - The controller often returns an **empty HTTP 200** on `/api/data`; the client
-  retries a few times per cycle to smooth this out.
+  retries a few times per cycle (0.3 s between retries) to smooth this out.
 
 ---
 
@@ -309,8 +316,6 @@ performs no aggressive scanning beyond the documented `GET` requests.
 ## Known limitations (local API)
 
 - **No local command endpoint was found** — see [Reverse engineering notes](#reverse-engineering-notes).
-- **AUX2 state is not currently exposed** in `/api/data` — turning it on changes
-  no field. Use the cloud integration for AUX2.
 - **AUX mode** (switch vs regulator) and **regulation setpoints** (pH, RedOx) are
   not exposed locally — cloud/config only.
 - The cloud/API is still required for native Oklyn commands.

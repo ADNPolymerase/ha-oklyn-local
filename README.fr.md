@@ -168,12 +168,13 @@ domaine**.
 > exposent aussi `raw_<champ>`, `offset_<champ>` et `corrected` en **attributs
 > d'état**, pour garder le calcul complet visible sans entités supplémentaires.
 
-### Pompe & Auxiliaire 1 (décodés depuis `SC1`)
+### Pompe, Auxiliaire 1 & Auxiliaire 2 (décodés depuis `SC1`)
 | Entité | Source | Détail |
 | --- | --- | --- |
 | `binary_sensor.…_pompe` | `SC1` bit 14 | pompe en marche (débit réel) |
 | `sensor.…_pompe_mode` | `SC1` bits 19/20 | `auto` / `manuel` |
 | `binary_sensor.…_aux1` | `SC1` bit 22 | sortie AUX1 ; **nom + type** configurables |
+| `binary_sensor.…_aux2` | `SC1` bit 23 | sortie AUX2 ; **nom + type** configurables — confirmé terrain 2026-06-18 (kurtenweb) |
 
 ### Diagnostic (`/api/info` + `/api/data`)
 Signal Wi-Fi (dBm), mémoire libre (octets), `version`, `core_version`, `sdk_version`,
@@ -184,8 +185,9 @@ et binary sensors `service_granted`, `key_valid`, `config_valid`.
 rendant les données périmées immédiatement visibles.
 
 ### Champs bruts (`/api/data`, désactivés par défaut)
-`HSN, TIM, SC1, BOX, OQT, PQT, HPN, SPN, SC2, ECM, APH, ARX, AMG, ATA, ATE` — exposés
+`HSN, TIM, SC1, BOX, OQT, PQT, HPN, SPN, SC2, APH, ARX, AMG, ATA, ATE` — exposés
 tels quels pour analyse. À activer champ par champ.
+(`ECM` n'est plus un champ brut — c'est désormais le capteur **Sel** décodé.)
 
 ---
 
@@ -195,9 +197,11 @@ tels quels pour analyse. À activer champ par champ.
 
 | Option | Défaut | Description |
 | --- | --- | --- |
-| Intervalle de polling | 30 s | 15 / 30 / 60 / 120 / 300 s |
+| Intervalle de polling | 30 s | 15 / 30 / 60 / 120 / 300 s — affiché comme dropdown avec la valeur courante pré-sélectionnée |
 | Nom AUX1 | Auxiliaire 1 | Nom du binary sensor AUX1 |
 | Type AUX1 | custom | `light` / `heating` / `electrolyzer` / `custom` → icône + device_class |
+| Nom AUX2 | Auxiliaire 2 | Nom du binary sensor AUX2 |
+| Type AUX2 | custom | `light` / `heating` / `electrolyzer` / `custom` → icône + device_class |
 
 ---
 
@@ -208,6 +212,7 @@ Les tests terrain montrent une séparation nette : `/api/data` expose les **mesu
 | Paramètre | Local `/api/data` |
 |---|---|
 | AUX1 ON/OFF | ✅ `SC1` bit 22 |
+| AUX2 ON/OFF | ✅ `SC1` bit 23 — confirmé terrain 2026-06-18 |
 | Pompe ON/OFF/auto | ✅ `SC1` bits 14/19/20 |
 | Correction sonde pH (`APH`) | ✅ champ `APH` |
 | Correction sonde RedOx (`ARX`) | ✅ champ `ARX` |
@@ -218,7 +223,6 @@ Les tests terrain montrent une séparation nette : `/api/data` expose les **mesu
 | Consigne hors-gel | ❌ cloud uniquement |
 | Mode filtration (auto / fixe) | ❌ cloud uniquement |
 | Consignes de régulation (pH, RedOx) | ❌ cloud uniquement |
-| État AUX2 | ❌ non exposé en local (firmware) |
 
 ---
 
@@ -233,6 +237,7 @@ Les tests terrain montrent une séparation nette : `/api/data` expose les **mesu
 | 20 | `0x100000` | commande manuelle **OFF** (override transitoire) |
 | 21 + 27 | `0x200000` + `0x8000000` | pompe en marche en mode **auto** |
 | 22 | `0x400000` | sortie **AUX1** |
+| 23 | `0x800000` | sortie **AUX2** — confirmé terrain 2026-06-18 (kurtenweb) |
 
 `SC1 = 0` = repos (pompe arrêtée, en auto). Les bits d'override manuel (19/20) sont
 transitoires et s'effacent au bout de quelques minutes (retour auto).
@@ -251,13 +256,12 @@ commande.
 | Champ / bit | Hypothèse actuelle | Ce qu'il nous faut |
 | --- | --- | --- |
 | `HSN` | numéro de série (= `serial`) | confirmer sur d'autres unités |
-| `TIM` | timestamp Unix du snapshot | confirmer |
+| `TIM` | timestamp Unix du snapshot (heure locale, sans offset UTC) | confirmer sur d'autres fuseaux |
 | `OQT` / `PQT` | qualité de mesure ORP / pH (%) | confirmer l'échelle |
 | `BOX` | température interne boîtier (°C, probable) | confirmer vs ambiant |
 | `HPN` / `SPN` | constants ici (2 / 10) — nb pompes ? programme ? | valeurs sur d'autres installs |
-| `ECM`, `SC2`, `AMG` | inconnus | toute corrélation observée |
-| **AUX2** | **non exposé en local** (firmware) | confirmer sur d'autres versions firmware |
-| `SC1` bits 0–13, 15–18, 23–26, 28–31 | inutilisés/inconnus | tout bit qui bascule |
+| `SC2`, `AMG` | inconnus | toute corrélation observée |
+| `SC1` bits 0–13, 15–18, 24–26, 28–31 | inutilisés/inconnus | tout bit qui bascule |
 | Autres clés `/api/data` non listées | — | les signaler |
 
 ### Comment contribuer un relevé
@@ -286,14 +290,17 @@ nouvelle fonction. Les contributions sont créditées dans le changelog. 🙏
 ## Gestion des erreurs
 
 - Timeout HTTP court (5 s) ; polling 30 s par défaut (configurable).
-- `/api/data` échoue → les dernières valeurs connues sont servies depuis le cache ; les entités restent disponibles.
-- `/api/info` échoue → les dernières valeurs connues sont servies depuis le cache ; les entités restent disponibles.
+- `/api/data` ou `/api/info` échoue → les dernières valeurs connues sont servies depuis le cache ; les entités restent disponibles.
+- Le cache expire après **3 × l'intervalle de polling** (ex. 45 s à 15 s de polling) — au-delà,
+  les entités passent indisponibles plutôt que de servir un état périmé (ex. AUX affiché ON longtemps après une coupure).
 - Les deux échouent ET aucune donnée n'a jamais été reçue → `UpdateFailed` (toutes les entités indisponibles).
 - En cas d'utilisation du cache, un warning est loggé avec le dernier `TIM` ; le
   capteur `Dernière mesure boîtier` se fige, rendant les données périmées visibles.
+- **Re-poll à la sortie de coupure** : quand le boîtier redevient joignable après une coupure HTTP,
+  un poll supplémentaire est déclenché 1 s plus tard — l'état frais remplace le cache sans attendre un cycle complet.
 - Un champ absent ne plante jamais — l'entité concernée passe indisponible.
 - Le boîtier renvoie souvent un **HTTP 200 vide** sur `/api/data` ; le client
-  réessaie plusieurs fois par cycle pour lisser ces blips.
+  réessaie plusieurs fois par cycle (0,3 s entre tentatives) pour lisser ces blips.
 
 ---
 
@@ -314,8 +321,6 @@ fait aucun scan agressif au-delà des requêtes `GET` documentées.
 ## Limites connues (API locale)
 
 - **Aucun endpoint de commande local n'a été trouvé** — voir [Notes de reverse engineering](#notes-de-reverse-engineering).
-- **L'état d'AUX2 n'est pas exposé** dans `/api/data` — l'allumer ne change
-  aucun champ. Utilise l'intégration cloud pour AUX2.
 - Le **mode AUX** (interrupteur vs régulateur) et les **consignes de régulation**
   (pH, RedOx) ne sont pas exposés en local — cloud/config uniquement.
 - Le cloud/API reste nécessaire pour les commandes natives Oklyn.
