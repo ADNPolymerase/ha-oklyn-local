@@ -23,7 +23,12 @@ DEFAULT_SCAN_INTERVAL = 30  # secondes
 # Le boîtier renvoie fréquemment un corps VIDE avec un HTTP 200 sur /api/data.
 # On réessaie plusieurs fois dans le même cycle de polling pour lisser ces blips.
 HTTP_RETRIES = 4
-HTTP_RETRY_DELAY = 1.0  # secondes entre deux tentatives
+HTTP_RETRY_DELAY = 0.3  # secondes entre deux tentatives (réduit : moins de dead time)
+
+# Cache TTL : au-delà de N × scan_interval secondes sans donnée fraîche,
+# le coordinateur cesse de servir le cache et passe les entités en unavailable.
+# Évite de prolonger un état périmé (ex. AUX resté ON après une coupure HTTP).
+CACHE_TTL_FACTOR = 3  # → TTL = 3 × scan_interval
 
 OPT_SCAN_INTERVAL = "scan_interval"
 SCAN_INTERVAL_OPTIONS = [15, 30, 60, 120, 300]

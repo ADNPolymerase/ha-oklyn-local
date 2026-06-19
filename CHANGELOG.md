@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.9b1 (beta)
+
+- **Re-poll immédiat après coupure HTTP** : dès que le boîtier redevient
+  joignable après une série de corps vides, un re-poll est déclenché 1 s plus
+  tard — évite de servir le cache périmé pendant tout un cycle de 15 s.
+- **Cache TTL** : le cache est limité à 3 × intervalle (45 s par défaut).
+  Au-delà, les entités passent en unavailable au lieu de prolonger un état
+  périmé (ex. AUX affiché ON pendant 5 min après une coupure).
+- **Retry delay 0.3 s** (était 1.0 s) : la récupération après un corps vide
+  prend 1.2 s max au lieu de 4 s.
+
 ## 0.1.9
 
 - **AUX2** : sortie relais AUX2 (SC1 bit 23) — entité `binary_sensor` confirmée terrain
