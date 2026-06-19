@@ -7,5 +7,5 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/ADNPolymerase/ha-oklyn-local/issues",
   "requirements": [],
-  "version": "0.1.8b3"
+  "version": "0.1.9"
 }
