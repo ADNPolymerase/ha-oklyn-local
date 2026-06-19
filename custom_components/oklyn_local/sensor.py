@@ -26,6 +26,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.util import dt as dt_util
 
 from .const import DATA_DIVIDE, DOMAIN, SC1_MANUAL_OFF, SC1_MANUAL_ON
 from .coordinator import OklynLocalCoordinator
@@ -247,8 +248,15 @@ MEASURE_SENSORS: tuple[OklynSensorDescription, ...] = (
         field="TIM",
         device_class=SensorDeviceClass.TIMESTAMP,
         entity_category=EntityCategory.DIAGNOSTIC,
-        # value_fn convertit le timestamp Unix (int) en datetime UTC aware.
-        value_fn=lambda v: datetime.fromtimestamp(int(v), tz=UTC),
+        # Le boîtier stocke TIM en heure locale sans offset UTC.
+        # On réinterprète la valeur naive comme heure locale HA avant de
+        # convertir en vrai UTC — évite l'affichage "2h dans le futur".
+        value_fn=lambda v: (
+            datetime.fromtimestamp(int(v), tz=UTC)
+            .replace(tzinfo=None)
+            .replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+            .astimezone(UTC)
+        ),
     ),
     # --- Corrections appliquées (APH/ARX), diagnostic ---------------------
     OklynSensorDescription(

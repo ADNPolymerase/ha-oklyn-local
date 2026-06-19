@@ -102,7 +102,7 @@ class OklynLocalOptionsFlow(OptionsFlow):
                     vol.Optional(
                         OPT_SCAN_INTERVAL,
                         default=opts.get(OPT_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-                    ): vol.In(SCAN_INTERVAL_OPTIONS),
+                    ): vol.All(vol.Coerce(int), vol.In(SCAN_INTERVAL_OPTIONS)),
                     vol.Optional(
                         OPT_AUX1_NAME,
                         default=opts.get(OPT_AUX1_NAME, DEFAULT_AUX1_NAME),
