@@ -30,9 +30,13 @@ from .const import (
     AUX1_TYPE_LIGHT,
     DEFAULT_AUX1_NAME,
     DEFAULT_AUX1_TYPE,
+    DEFAULT_AUX2_NAME,
+    DEFAULT_AUX2_TYPE,
     DOMAIN,
     OPT_AUX1_NAME,
     OPT_AUX1_TYPE,
+    OPT_AUX2_NAME,
+    OPT_AUX2_TYPE,
     SC1_AUX1,
     SC1_AUX2,
     SC1_PUMP_RUNNING,
@@ -101,7 +105,7 @@ async def async_setup_entry(
     ]
     entities.append(OklynPumpRunningBinarySensor(coordinator))
     entities.append(OklynAux1BinarySensor(coordinator, entry))
-    entities.append(OklynAux2BinarySensor(coordinator))
+    entities.append(OklynAux2BinarySensor(coordinator, entry))
     async_add_entities(entities)
 
 
@@ -158,16 +162,24 @@ class OklynAux1BinarySensor(_OklynSc1BitBinarySensor):
 
 
 class OklynAux2BinarySensor(_OklynSc1BitBinarySensor):
-    """Sortie AUX2 (SC1 bit 23) — beta, en attente de confirmation terrain."""
+    """Sortie AUX2 (SC1 bit 23). Nom/type configurables via les options."""
 
     _bit = SC1_AUX2
-    _attr_translation_key = "aux2"
-    _attr_device_class = BinarySensorDeviceClass.POWER
+    _attr_has_entity_name = True
 
-    def __init__(self, coordinator: OklynLocalCoordinator) -> None:
+    def __init__(
+        self, coordinator: OklynLocalCoordinator, entry: ConfigEntry
+    ) -> None:
         super().__init__(coordinator)
         serial = next(iter(self._attr_device_info["identifiers"]))[1]
         self._attr_unique_id = f"{serial}_aux2"
+        self._attr_name = entry.options.get(OPT_AUX2_NAME, DEFAULT_AUX2_NAME)
+        aux_type = entry.options.get(OPT_AUX2_TYPE, DEFAULT_AUX2_TYPE)
+        presentation = AUX1_TYPE_PRESENTATION.get(aux_type)
+        if presentation:
+            self._attr_device_class, self._attr_icon = presentation
+        else:
+            self._attr_device_class = BinarySensorDeviceClass.POWER
 
 
 class OklynLocalBinarySensor(OklynLocalEntity, BinarySensorEntity):

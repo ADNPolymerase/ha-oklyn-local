@@ -23,10 +23,31 @@
       "init": {
         "title": "Options Oklyn Local",
         "data": {
-          "scan_interval": "Intervalle d'interrogation (secondes)",
+          "scan_interval": "Intervalle d'interrogation",
           "aux1_name": "Nom d'AUX1",
-          "aux1_type": "Type d'AUX1 (light / heating / electrolyzer / custom)"
+          "aux1_type": "Type d'AUX1",
+          "aux2_name": "Nom d'AUX2",
+          "aux2_type": "Type d'AUX2"
         }
+      }
+    }
+  },
+  "selector": {
+    "scan_interval": {
+      "options": {
+        "15": "15 s",
+        "30": "30 s",
+        "60": "60 s",
+        "120": "120 s",
+        "300": "300 s"
+      }
+    },
+    "aux_type": {
+      "options": {
+        "light": "Lumière",
+        "heating": "Chauffage",
+        "electrolyzer": "Électrolyseur",
+        "custom": "Autre"
       }
     }
   },

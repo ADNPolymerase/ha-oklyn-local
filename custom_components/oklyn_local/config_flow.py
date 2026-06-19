@@ -18,6 +18,11 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
 from .api import (
     OklynLocalClient,
@@ -29,11 +34,15 @@ from .const import (
     CONF_HOST,
     DEFAULT_AUX1_NAME,
     DEFAULT_AUX1_TYPE,
+    DEFAULT_AUX2_NAME,
+    DEFAULT_AUX2_TYPE,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     OPT_AUX1_NAME,
     OPT_AUX1_TYPE,
+    OPT_AUX2_NAME,
+    OPT_AUX2_TYPE,
     OPT_SCAN_INTERVAL,
     SCAN_INTERVAL_OPTIONS,
 )
@@ -92,17 +101,31 @@ class OklynLocalOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is not None:
+            user_input[OPT_SCAN_INTERVAL] = int(user_input[OPT_SCAN_INTERVAL])
             return self.async_create_entry(title="", data=user_input)
 
         opts = self.config_entry.options
+        aux_type_selector = SelectSelector(
+            SelectSelectorConfig(
+                options=AUX1_TYPES,
+                mode=SelectSelectorMode.DROPDOWN,
+                translation_key="aux_type",
+            )
+        )
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
                         OPT_SCAN_INTERVAL,
-                        default=opts.get(OPT_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-                    ): vol.All(vol.Coerce(int), vol.In(SCAN_INTERVAL_OPTIONS)),
+                        default=str(opts.get(OPT_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)),
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=[str(i) for i in SCAN_INTERVAL_OPTIONS],
+                            mode=SelectSelectorMode.DROPDOWN,
+                            translation_key="scan_interval",
+                        )
+                    ),
                     vol.Optional(
                         OPT_AUX1_NAME,
                         default=opts.get(OPT_AUX1_NAME, DEFAULT_AUX1_NAME),
@@ -110,7 +133,15 @@ class OklynLocalOptionsFlow(OptionsFlow):
                     vol.Optional(
                         OPT_AUX1_TYPE,
                         default=opts.get(OPT_AUX1_TYPE, DEFAULT_AUX1_TYPE),
-                    ): vol.In(AUX1_TYPES),
+                    ): aux_type_selector,
+                    vol.Optional(
+                        OPT_AUX2_NAME,
+                        default=opts.get(OPT_AUX2_NAME, DEFAULT_AUX2_NAME),
+                    ): str,
+                    vol.Optional(
+                        OPT_AUX2_TYPE,
+                        default=opts.get(OPT_AUX2_TYPE, DEFAULT_AUX2_TYPE),
+                    ): aux_type_selector,
                 }
             ),
         )
