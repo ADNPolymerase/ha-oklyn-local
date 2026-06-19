@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.8b3 (beta)
+
+- **Fix** : intervalle d'interrogation affiché comme dropdown (SelectSelector)
+  — la valeur courante est maintenant pré-sélectionnée à la réouverture des options.
+- **Fix** : type AUX1 affiché comme dropdown (SelectSelector) avec libellés lisibles.
+- **Nouveauté** : AUX2 entièrement configurable dans les options — nom et type
+  (Lumière / Chauffage / Électrolyseur / Autre), identique à AUX1.
+
 ## 0.1.8b2 (beta)
 
 - **Fix** : l'intervalle d'interrogation dans les options sautait / ne se sauvegardait pas

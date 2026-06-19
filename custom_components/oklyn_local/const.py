@@ -37,6 +37,10 @@ OPT_AUX1_NAME = "aux1_name"
 OPT_AUX1_TYPE = "aux1_type"
 DEFAULT_AUX1_NAME = "Auxiliaire 1"
 
+OPT_AUX2_NAME = "aux2_name"
+OPT_AUX2_TYPE = "aux2_type"
+DEFAULT_AUX2_NAME = "Auxiliaire 2"
+
 AUX1_TYPE_LIGHT = "light"
 AUX1_TYPE_HEATING = "heating"
 AUX1_TYPE_ELECTROLYZER = "electrolyzer"
@@ -48,6 +52,7 @@ AUX1_TYPES = [
     AUX1_TYPE_CUSTOM,
 ]
 DEFAULT_AUX1_TYPE = AUX1_TYPE_CUSTOM
+DEFAULT_AUX2_TYPE = AUX1_TYPE_CUSTOM
 
 # Décodage du champ SC1 (bitfield d'état) — confirmé terrain 2026-06-15.
 # Référence : memory oklyn-local-sc1-decode.
