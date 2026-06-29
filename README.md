@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ADNPolymerase/ha-oklyn/main/custom_components/oklyn/brand/logo.png" alt="Oklyn" height="80">
+</p>
+
 # Oklyn Local for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/ADNPolymerase/ha-oklyn-local)
@@ -18,9 +22,9 @@ controller. It polls the controller directly over your LAN (HTTP, port 80) —
 
 > ⚠️ **Proof of concept — read-only.** This integration never sends a command:
 > no pump / AUX control, no Wi-Fi config, no `PUT`/`POST`. It only reads
-> `http://<ip>/api/info` and `http://<ip>/api/data`. Some fields are decoded
-> from real-world testing; a few remain **unknown** — see
-> [Help wanted](#help-wanted-decode-the-unknown-fields) below.
+> `http://<ip>/api/info` and `http://<ip>/api/data`. The field decoding has been
+> **validated by Oklyn** (June 2026) — see
+> [Field confirmations](#help-wanted-decode-the-unknown-fields) below.
 
 > ☁️ **Need control (pump, auxiliaries)?** The Oklyn controller can only be
 > *commanded* through the cloud. Use the companion cloud integration
@@ -184,6 +188,7 @@ making stale data easy to spot.
 `HSN, TIM, SC1, BOX, OQT, PQT, HPN, SPN, SC2, APH, ARX, AMG, ATA, ATE` — exposed
 as-is for analysis. Enable per field in the entity settings.
 (`ECM` is no longer a raw field — it is the decoded **Sel** sensor.)
+Note: `OQT`/`PQT` contain data but are not used by Oklyn firmware; `AMG` is the salt probe correction.
 
 ---
 
@@ -258,16 +263,22 @@ This is the fun part. Several fields are **not yet understood**, and Oklyn provi
 no public documentation. If you own an Oklyn controller, **you can help map them** —
 purely by reading, never by sending commands.
 
+### Confirmed by Oklyn (2026-06-29)
+
+| Field | Status | Detail |
+| --- | --- | --- |
+| `OQT` / `PQT` | ✅ **Not used** | Contain data but are not used by the firmware (confirmed by Oklyn). |
+| `AMG` | ✅ **Salt probe correction** | Additive correction for the salt probe — same logic as `APH` / `ARX` / `ATE` / `ATA`. |
+| `SC2`, `HPN`, `SPN` | ✅ **Decoding confirmed correct** | Exact semantics not documented, but the integration's handling is validated. |
+| **Regulator mode (AUX)** | ✅ **Electrolyzer only** | Activates the AUX relay when RedOx < setpoint AND the pump is running. Not suitable for a dosing pump. |
+
 ### Still unknown
 
 | Field / bit | Current guess | What we need |
 | --- | --- | --- |
 | `HSN` | hardware serial (= `serial`) | confirm on other units |
 | `TIM` | Unix timestamp of the snapshot (local time, no UTC offset) | confirm on other timezones |
-| `OQT` / `PQT` | ORP / pH measurement quality (%) | confirm scale |
 | `BOX` | controller internal temperature (°C, probable) | confirm vs ambient |
-| `HPN` / `SPN` | constant here (2 / 10) — pump count? program? | values on other setups |
-| `SC2`, `AMG` | unknown | any correlation you observe |
 | `SC1` bits 0–13, 15–18, 24–26, 28–31 | unused/unknown | any bit that toggles |
 | Other unlisted `/api/data` keys | — | report them |
 

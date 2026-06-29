@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 (2026-06-29)
+
+- **Validation protocole local** : décodage complet confirmé par Oklyn (Vincent, 2026-06-29).
+  - `OQT` / `PQT` : contiennent des données mais **ne sont pas utilisés** par le firmware.
+  - `AMG` : correction additive de la **sonde de sel** (même logique que APH/ARX/ATE/ATA).
+  - `SC2`, `HPN`, `SPN` : décodage confirmé correct.
+  - **Mode régulateur AUX** : dédié à un électrolyseur — active le relais quand RedOx < consigne ET pompe en marche. Pas adapté à une pompe doseuse.
+- **README** : logo Oklyn, section "Help wanted" mise à jour avec les champs confirmés, ajout note de validation officielle.
+- Intègre les correctifs `0.1.9b1` (re-poll, cache TTL, retry 0.3 s).
+
 ## 0.1.9b1 (beta)
 
 - **Re-poll immédiat après coupure HTTP** : dès que le boîtier redevient
