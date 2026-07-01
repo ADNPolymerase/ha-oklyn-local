@@ -1,0 +1,145 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Oklyn Local",
+        "description": "Consulta local de solo lectura del controlador Oklyn. Nunca se envía ningún comando.",
+        "data": {
+          "host": "Dirección IP o nombre de host del controlador (p. ej. oklyn.local o 192.168.1.100)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se pudo alcanzar el controlador en la red local.",
+      "invalid_response": "El controlador respondió, pero /api/info no es válido.",
+      "unknown": "Error inesperado."
+    },
+    "abort": {
+      "already_configured": "Este controlador Oklyn ya está configurado."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones de Oklyn Local",
+        "data": {
+          "scan_interval": "Intervalo de consulta",
+          "aux1_name": "Nombre de AUX1",
+          "aux1_type": "Tipo de AUX1",
+          "aux2_name": "Nombre de AUX2",
+          "aux2_type": "Tipo de AUX2"
+        }
+      }
+    }
+  },
+  "selector": {
+    "scan_interval": {
+      "options": {
+        "15": "15 s",
+        "30": "30 s",
+        "60": "60 s",
+        "120": "120 s",
+        "300": "300 s"
+      }
+    },
+    "aux_type": {
+      "options": {
+        "light": "Luz",
+        "heating": "Calefacción",
+        "electrolyzer": "Electrolizador",
+        "custom": "Otro"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature_eau": {
+        "name": "Temperatura del agua"
+      },
+      "temperature_eau_sonde": {
+        "name": "Sonda de temperatura del agua"
+      },
+      "temperature_air": {
+        "name": "Temperatura del aire"
+      },
+      "temperature_air_sonde": {
+        "name": "Sonda de temperatura del aire"
+      },
+      "temperature_boitier": {
+        "name": "Temperatura del controlador"
+      },
+      "redox": {
+        "name": "RedOx corregido"
+      },
+      "redox_sonde": {
+        "name": "Sonda RedOx"
+      },
+      "ph": {
+        "name": "pH corregido"
+      },
+      "ph_sonde": {
+        "name": "Sonda de pH"
+      },
+      "sel": {
+        "name": "Sal"
+      },
+      "derniere_mesure": {
+        "name": "Última lectura del controlador"
+      },
+      "offset_ph": {
+        "name": "Offset de pH"
+      },
+      "offset_redox": {
+        "name": "Offset de RedOx"
+      },
+      "offset_temp_eau": {
+        "name": "Offset de temperatura del agua"
+      },
+      "offset_temp_air": {
+        "name": "Offset de temperatura del aire"
+      },
+      "wifi_signal": {
+        "name": "Señal Wi-Fi"
+      },
+      "memory_free": {
+        "name": "Memoria libre"
+      },
+      "version": {
+        "name": "Version"
+      },
+      "core_version": {
+        "name": "Versión core"
+      },
+      "sdk_version": {
+        "name": "Versión SDK"
+      },
+      "raw_field": {
+        "name": "Bruto {field}"
+      },
+      "pompe_mode": {
+        "name": "Modo de la bomba",
+        "state": {
+          "auto": "Auto",
+          "manuel": "Manual"
+        }
+      }
+    },
+    "binary_sensor": {
+      "service_granted": {
+        "name": "Servicio Oklyn autorizado"
+      },
+      "key_valid": {
+        "name": "Clave válida"
+      },
+      "config_valid": {
+        "name": "Configuración válida"
+      },
+      "pompe": {
+        "name": "Bomba"
+      },
+      "aux2": {
+        "name": "Auxiliar 2"
+      }
+    }
+  }
+}

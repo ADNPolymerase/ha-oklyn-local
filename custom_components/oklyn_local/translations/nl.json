@@ -1,0 +1,145 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Oklyn Local",
+        "description": "Lokale, alleen-lezen polling van de Oklyn-regelaar. Er wordt nooit een commando verzonden.",
+        "data": {
+          "host": "IP-adres of hostnaam van de regelaar (bijv. oklyn.local of 192.168.1.100)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kon de regelaar niet bereiken op het lokale netwerk.",
+      "invalid_response": "De regelaar heeft geantwoord, maar /api/info is ongeldig.",
+      "unknown": "Onverwachte fout."
+    },
+    "abort": {
+      "already_configured": "Deze Oklyn-regelaar is al geconfigureerd."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Oklyn Local-opties",
+        "data": {
+          "scan_interval": "Pollinginterval",
+          "aux1_name": "AUX1-naam",
+          "aux1_type": "AUX1-type",
+          "aux2_name": "AUX2-naam",
+          "aux2_type": "AUX2-type"
+        }
+      }
+    }
+  },
+  "selector": {
+    "scan_interval": {
+      "options": {
+        "15": "15 s",
+        "30": "30 s",
+        "60": "60 s",
+        "120": "120 s",
+        "300": "300 s"
+      }
+    },
+    "aux_type": {
+      "options": {
+        "light": "Licht",
+        "heating": "Verwarming",
+        "electrolyzer": "Elektrolyser",
+        "custom": "Overig"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature_eau": {
+        "name": "Watertemperatuur"
+      },
+      "temperature_eau_sonde": {
+        "name": "Watertemperatuursonde"
+      },
+      "temperature_air": {
+        "name": "Luchttemperatuur"
+      },
+      "temperature_air_sonde": {
+        "name": "Luchttemperatuursonde"
+      },
+      "temperature_boitier": {
+        "name": "Regelaartemperatuur"
+      },
+      "redox": {
+        "name": "RedOx gecorrigeerd"
+      },
+      "redox_sonde": {
+        "name": "RedOx-sonde"
+      },
+      "ph": {
+        "name": "pH gecorrigeerd"
+      },
+      "ph_sonde": {
+        "name": "pH-sonde"
+      },
+      "sel": {
+        "name": "Zout"
+      },
+      "derniere_mesure": {
+        "name": "Laatste meting regelaar"
+      },
+      "offset_ph": {
+        "name": "pH-offset"
+      },
+      "offset_redox": {
+        "name": "RedOx-offset"
+      },
+      "offset_temp_eau": {
+        "name": "Watertemperatuur-offset"
+      },
+      "offset_temp_air": {
+        "name": "Luchttemperatuur-offset"
+      },
+      "wifi_signal": {
+        "name": "Wifi-signaal"
+      },
+      "memory_free": {
+        "name": "Vrij geheugen"
+      },
+      "version": {
+        "name": "Version"
+      },
+      "core_version": {
+        "name": "Core-versie"
+      },
+      "sdk_version": {
+        "name": "SDK-versie"
+      },
+      "raw_field": {
+        "name": "Ruw {field}"
+      },
+      "pompe_mode": {
+        "name": "Pompmodus",
+        "state": {
+          "auto": "Auto",
+          "manuel": "Handmatig"
+        }
+      }
+    },
+    "binary_sensor": {
+      "service_granted": {
+        "name": "Oklyn-service geautoriseerd"
+      },
+      "key_valid": {
+        "name": "Sleutel geldig"
+      },
+      "config_valid": {
+        "name": "Configuratie geldig"
+      },
+      "pompe": {
+        "name": "Pomp"
+      },
+      "aux2": {
+        "name": "Hulpuitgang 2"
+      }
+    }
+  }
+}

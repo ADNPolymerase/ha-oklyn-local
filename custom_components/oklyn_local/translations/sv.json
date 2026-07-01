@@ -1,0 +1,145 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Oklyn Local",
+        "description": "Lokal skrivskyddad avsökning av Oklyn-styrningen. Inget kommando skickas någonsin.",
+        "data": {
+          "host": "Styrningens IP-adress eller värdnamn (t.ex. oklyn.local eller 192.168.1.100)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Det gick inte att nå styrningen på det lokala nätverket.",
+      "invalid_response": "Styrningen svarade, men /api/info är ogiltigt.",
+      "unknown": "Oväntat fel."
+    },
+    "abort": {
+      "already_configured": "Den här Oklyn-styrningen är redan konfigurerad."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Oklyn Local-alternativ",
+        "data": {
+          "scan_interval": "Avsökningsintervall",
+          "aux1_name": "AUX1-namn",
+          "aux1_type": "AUX1-typ",
+          "aux2_name": "AUX2-namn",
+          "aux2_type": "AUX2-typ"
+        }
+      }
+    }
+  },
+  "selector": {
+    "scan_interval": {
+      "options": {
+        "15": "15 s",
+        "30": "30 s",
+        "60": "60 s",
+        "120": "120 s",
+        "300": "300 s"
+      }
+    },
+    "aux_type": {
+      "options": {
+        "light": "Belysning",
+        "heating": "Uppvärmning",
+        "electrolyzer": "Elektrolysator",
+        "custom": "Annat"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature_eau": {
+        "name": "Vattentemperatur"
+      },
+      "temperature_eau_sonde": {
+        "name": "Vattentemperaturgivare"
+      },
+      "temperature_air": {
+        "name": "Lufttemperatur"
+      },
+      "temperature_air_sonde": {
+        "name": "Lufttemperaturgivare"
+      },
+      "temperature_boitier": {
+        "name": "Styrningens temperatur"
+      },
+      "redox": {
+        "name": "RedOx korrigerad"
+      },
+      "redox_sonde": {
+        "name": "RedOx-givare"
+      },
+      "ph": {
+        "name": "pH korrigerat"
+      },
+      "ph_sonde": {
+        "name": "pH-givare"
+      },
+      "sel": {
+        "name": "Salt"
+      },
+      "derniere_mesure": {
+        "name": "Senaste avläsning styrning"
+      },
+      "offset_ph": {
+        "name": "pH-offset"
+      },
+      "offset_redox": {
+        "name": "RedOx-offset"
+      },
+      "offset_temp_eau": {
+        "name": "Vattentemperatur-offset"
+      },
+      "offset_temp_air": {
+        "name": "Lufttemperatur-offset"
+      },
+      "wifi_signal": {
+        "name": "Wi-Fi-signal"
+      },
+      "memory_free": {
+        "name": "Ledigt minne"
+      },
+      "version": {
+        "name": "Version"
+      },
+      "core_version": {
+        "name": "Core-version"
+      },
+      "sdk_version": {
+        "name": "SDK-version"
+      },
+      "raw_field": {
+        "name": "Rå {field}"
+      },
+      "pompe_mode": {
+        "name": "Pumpläge",
+        "state": {
+          "auto": "Auto",
+          "manuel": "Manuell"
+        }
+      }
+    },
+    "binary_sensor": {
+      "service_granted": {
+        "name": "Oklyn-tjänst auktoriserad"
+      },
+      "key_valid": {
+        "name": "Nyckel giltig"
+      },
+      "config_valid": {
+        "name": "Konfiguration giltig"
+      },
+      "pompe": {
+        "name": "Pump"
+      },
+      "aux2": {
+        "name": "Extrautgång 2"
+      }
+    }
+  }
+}
