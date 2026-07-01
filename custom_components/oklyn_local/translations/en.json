@@ -23,10 +23,31 @@
       "init": {
         "title": "Oklyn Local options",
         "data": {
-          "scan_interval": "Polling interval (seconds)",
+          "scan_interval": "Polling interval",
           "aux1_name": "AUX1 name",
-          "aux1_type": "AUX1 type (light / heating / electrolyzer / custom)"
+          "aux1_type": "AUX1 type",
+          "aux2_name": "AUX2 name",
+          "aux2_type": "AUX2 type"
         }
+      }
+    }
+  },
+  "selector": {
+    "scan_interval": {
+      "options": {
+        "15": "15 s",
+        "30": "30 s",
+        "60": "60 s",
+        "120": "120 s",
+        "300": "300 s"
+      }
+    },
+    "aux_type": {
+      "options": {
+        "light": "Light",
+        "heating": "Heating",
+        "electrolyzer": "Electrolyzer",
+        "custom": "Other"
       }
     }
   },
@@ -41,6 +62,8 @@
       "redox_sonde": { "name": "Redox probe" },
       "ph": { "name": "pH corrected" },
       "ph_sonde": { "name": "pH probe" },
+      "sel": { "name": "Salt" },
+      "derniere_mesure": { "name": "Last controller reading" },
       "offset_ph": { "name": "pH offset" },
       "offset_redox": { "name": "Redox offset" },
       "offset_temp_eau": { "name": "Water temperature offset" },
@@ -60,7 +83,8 @@
       "service_granted": { "name": "Oklyn service granted" },
       "key_valid": { "name": "Key valid" },
       "config_valid": { "name": "Configuration valid" },
-      "pompe": { "name": "Pump" }
+      "pompe": { "name": "Pump" },
+      "aux2": { "name": "Auxiliary 2" }
     }
   }
 }
