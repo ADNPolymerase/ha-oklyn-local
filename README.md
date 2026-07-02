@@ -395,4 +395,4 @@ Issues and pull requests welcome at
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/ADNPolymerase/ha-oklyn-local/blob/main/LICENSE).

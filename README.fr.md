@@ -390,4 +390,4 @@ particulièrement précieux.
 
 ## Licence
 
-MIT — voir [LICENSE](LICENSE).
+MIT — voir [LICENSE](https://github.com/ADNPolymerase/ha-oklyn-local/blob/main/LICENSE).
