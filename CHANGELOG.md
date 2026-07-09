@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.2 (2026-07-09)
+
+- Ajout de la traduction russe (`translations/ru.json`).
+
 ## 0.4.0 (2026-06-29)
 
 - **Validation protocole local** : décodage complet confirmé par Oklyn (Vincent, 2026-06-29).

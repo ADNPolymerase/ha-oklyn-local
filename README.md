@@ -52,7 +52,7 @@ controller. It polls the controller directly over your LAN (HTTP, port 80) —
 - Robust to the controller's intermittent empty responses (built-in retries)
 - **Last known good cache** — entities stay available on transient failures; a
   `Dernière mesure boîtier` timestamp sensor shows when data was last refreshed
-- English and French translations
+- English, French and Russian translations
 
 ---
 

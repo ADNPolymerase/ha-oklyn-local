@@ -49,7 +49,7 @@ Intégration Home Assistant **locale et en lecture seule** pour le boîtier pisc
 - **Cache des dernières valeurs connues** — les entités restent disponibles en cas
   de défaillance transitoire ; un capteur `Dernière mesure boîtier` indique quand
   les données ont été rafraîchies pour la dernière fois
-- Traductions française et anglaise
+- Traductions française, anglaise et russe
 
 ---
 

@@ -1,0 +1,90 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Oklyn Local",
+        "description": "Локальный опрос контроллера Oklyn только для чтения. Команды никогда не отправляются.",
+        "data": {
+          "host": "IP-адрес или имя хоста контроллера (например, oklyn.local или 192.168.1.100)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Не удалось связаться с контроллером в локальной сети.",
+      "invalid_response": "Контроллер ответил, но /api/info недействителен.",
+      "unknown": "Непредвиденная ошибка."
+    },
+    "abort": {
+      "already_configured": "Этот контроллер Oklyn уже настроен."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Параметры Oklyn Local",
+        "data": {
+          "scan_interval": "Интервал опроса",
+          "aux1_name": "Название AUX1",
+          "aux1_type": "Тип AUX1",
+          "aux2_name": "Название AUX2",
+          "aux2_type": "Тип AUX2"
+        }
+      }
+    }
+  },
+  "selector": {
+    "scan_interval": {
+      "options": {
+        "15": "15 с",
+        "30": "30 с",
+        "60": "60 с",
+        "120": "120 с",
+        "300": "300 с"
+      }
+    },
+    "aux_type": {
+      "options": {
+        "light": "Освещение",
+        "heating": "Обогрев",
+        "electrolyzer": "Электролизёр",
+        "custom": "Другое"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature_eau": { "name": "Температура воды" },
+      "temperature_eau_sonde": { "name": "Датчик температуры воды" },
+      "temperature_air": { "name": "Температура воздуха" },
+      "temperature_air_sonde": { "name": "Датчик температуры воздуха" },
+      "temperature_boitier": { "name": "Температура контроллера" },
+      "redox": { "name": "Redox (скорректировано)" },
+      "redox_sonde": { "name": "Датчик Redox" },
+      "ph": { "name": "pH (скорректировано)" },
+      "ph_sonde": { "name": "Датчик pH" },
+      "sel": { "name": "Соль" },
+      "derniere_mesure": { "name": "Последнее измерение контроллера" },
+      "offset_ph": { "name": "Смещение pH" },
+      "offset_redox": { "name": "Смещение Redox" },
+      "offset_temp_eau": { "name": "Смещение температуры воды" },
+      "offset_temp_air": { "name": "Смещение температуры воздуха" },
+      "wifi_signal": { "name": "Уровень сигнала Wi-Fi" },
+      "memory_free": { "name": "Свободная память" },
+      "version": { "name": "Версия" },
+      "core_version": { "name": "Версия ядра" },
+      "sdk_version": { "name": "Версия SDK" },
+      "raw_field": { "name": "Сырое значение {field}" },
+      "pompe_mode": {
+        "name": "Режим насоса",
+        "state": { "auto": "Авто", "manuel": "Вручную" }
+      }
+    },
+    "binary_sensor": {
+      "service_granted": { "name": "Доступ к сервису Oklyn предоставлен" },
+      "key_valid": { "name": "Ключ действителен" },
+      "config_valid": { "name": "Конфигурация верна" },
+      "pompe": { "name": "Насос" },
+      "aux2": { "name": "Дополнительный выход 2" }
+    }
+  }
+}
