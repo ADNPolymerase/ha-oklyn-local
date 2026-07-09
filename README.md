@@ -36,114 +36,38 @@ controller. It polls the controller directly over your LAN (HTTP, port 80) —
 
 ## Features
 
-- **pH** — corrected (`(PH1 + APH) / 100`) and raw probe value
-- **RedOx / ORP** — corrected (`(ORP + ARX) / 10`, mV) and raw probe value
-- **Water** and **air** temperature (°C)
-- **Salt** (salt pool models): concentration in g/L — decoded from the `ECM` field (`ECM / 1000`), disabled by default, enable it in HA if your pool uses salt
-- **Pump**: running state + mode (`auto` / `manuel`), decoded from the `SC1` status word
-- **Auxiliary 1**: output state, with configurable name & type (light / heating / electrolyzer / custom)
-- **Diagnostics**: Wi-Fi signal, free memory, firmware/core/SDK versions, service/key/config flags
-- **Router linking**: the controller's MAC address is registered in the HA device registry — HA automatically links the device to your router integration (e.g. Livebox, Freebox, UniFi…)
-- **Raw fields** exposed (disabled by default) for further analysis
-- Corrected sensors (pH, RedOx, water/air temperature) expose `raw_*` / `offset_*` /
-  `corrected` as state attributes for full traceability
-- Full UI configuration — `oklyn.local` (mDNS) or IP, plus polling interval, no YAML
-- Short HTTP timeout, configurable polling (15 / 30 / 60 / 120 / 300 s)
-- Robust to the controller's intermittent empty responses (built-in retries)
-- **Last known good cache** — entities stay available on transient failures; a
-  `Dernière mesure boîtier` timestamp sensor shows when data was last refreshed
-- English, French and Russian translations
+- **pH, RedOx/ORP, water & air temperature** — corrected values (probe + controller offset), with `raw_*` / `offset_*` / `corrected` attributes for full traceability, plus raw probe sensors (disabled by default).
+- **Salt** (salt pool models, g/L, `ECM / 1000`) — disabled by default.
+- **Pump** (running state + `auto` / `manuel` mode) and **Auxiliaries 1 & 2** (configurable name & type), decoded from the `SC1` status word.
+- **Diagnostics**: Wi-Fi signal, free memory, firmware versions, service/key/config flags — and **raw fields** (disabled by default) for analysis.
+- **Router linking**: the MAC address is registered in HA, linking the device to your router integration (Livebox, Freebox, UniFi…).
+- Full UI configuration (`oklyn.local` or IP), configurable polling (15–300 s), built-in retries, **last known good cache** with a `Dernière mesure boîtier` staleness sensor.
+- English, French and Russian translations.
 
 ---
 
-## Installation via HACS
+## Installation (HACS)
 
-1. In Home Assistant, open **HACS → Integrations**.
-2. Click the **⋮** menu → **Custom repositories**.
-3. Add `https://github.com/ADNPolymerase/ha-oklyn-local` with category **Integration**.
-4. Search for **Oklyn Local** and click **Download**.
-5. Restart Home Assistant.
-6. Go to **Settings → Devices & Services → Add Integration** and search for **Oklyn Local**.
-7. Enter the controller's host: either its mDNS name `oklyn.local`, or its IP address (e.g. `192.168.1.100`).
+1. HACS → **⋮** → **Custom repositories** → `https://github.com/ADNPolymerase/ha-oklyn-local`, category **Integration**.
+2. Download **Oklyn Local**, restart Home Assistant.
+3. **Settings → Devices & Services → Add Integration** → **Oklyn Local**, then enter the controller's host: `oklyn.local` (mDNS) or its IP.
 
-> 💡 **Tip:** `oklyn.local` works out of the box on most home networks (mDNS).
-> If your network doesn't resolve `.local` names (some routers / VLANs / Docker
-> setups don't), assign a static IP (DHCP reservation) to the controller instead
-> so the address never changes between reboots.
+> 💡 If your network doesn't resolve `.local` names (some routers / VLANs / Docker setups), use a static IP (DHCP reservation) instead.
 
-## Manual installation
-
-1. Copy the `custom_components/oklyn_local/` folder into your Home Assistant
-   `config/custom_components/` directory.
-2. Restart Home Assistant, then add the integration as above.
+Manual alternative: copy `custom_components/oklyn_local/` into `config/custom_components/`, restart, then add the integration.
 
 ---
 
-## Local discovery / mDNS
+## Local API
 
-The Oklyn controller advertises its local HTTP service through mDNS/zeroconf:
-
-```text
-_http._tcp.local → oklyn.local:80
-```
-
-Confirmed via:
-
-```bash
-dns-sd -B _http._tcp local        # → oklyn
-dns-sd -L oklyn _http._tcp local  # → oklyn.local.:80
-```
-
-Confirmed local endpoints (both work with the mDNS name or the IP):
-
-```text
-GET http://oklyn.local/api/info
-GET http://oklyn.local/api/data
-```
-
-If `.local` resolution doesn't work on your network (some routers / VLANs /
-Docker networks don't support mDNS), use the device's IP address instead — the
-config flow accepts either.
-
----
-
-## Endpoints used
+The controller advertises itself via mDNS (`_http._tcp.local → oklyn.local:80`) and exposes two endpoints:
 
 | Method | URL | Purpose |
 | --- | --- | --- |
 | `GET` | `http://<host>/api/info` | controller technical info |
 | `GET` | `http://<host>/api/data` | raw measurements + status word |
 
-The local HTTP server is a **diagnostic + Wi-Fi provisioning portal**. It exposes
-**no command endpoint** — pump/AUX control is cloud-only by design.
-
----
-
-## Network findings
-
-Local scans against a real controller (firmware `436`) showed:
-
-```text
-$ nmap -Pn -T4 --top-ports 1000 <ip>
-PORT   STATE SERVICE
-80/tcp open  http
-```
-
-- **TCP 80 open** — the local HTTP API documented here.
-- **No MQTT** (1883 / 8883), **no HTTPS** (443), **no alt-HTTP** (8080 / 8000) —
-  all closed/filtered.
-- **No CoAP** (UDP 5683) — closed.
-- **UDP 5353 open** — mDNS / zeroconf (see [Local discovery](#local-discovery--mdns) above).
-- MAC vendor prefix resolves to **Espressif** — the controller is ESP-based.
-- All other scanned TCP/UDP ports were filtered or closed — no other local
-  service was found.
-
-No local command endpoint for the pump, AUX1 or AUX2 was found (see
-[Reverse engineering notes](#reverse-engineering-notes) below for the full list
-of paths tried). Commands appear to be cloud-only: traffic captures show the
-controller calling `iot.oklyn.fr` (CNAME `esp.api.oklyn.fr`). This is mentioned
-here for diagnostic purposes only — **this integration never talks to that
-domain**.
+The local HTTP server is a **diagnostic + Wi-Fi provisioning portal** — it exposes **no command endpoint**; pump/AUX control is cloud-only by design. Network scans (firmware `436`) found only TCP 80 and UDP 5353 (mDNS) open — no MQTT, HTTPS, alt-HTTP or CoAP. The controller is ESP-based (Espressif MAC prefix), and traffic captures show commands go through `iot.oklyn.fr` — **this integration never talks to that domain**.
 
 ---
 
@@ -244,17 +168,7 @@ Field-testing shows a clear split: `/api/data` exposes **real-time physical meas
 `SC1 = 0` means idle (pump off, in auto). Manual override bits (19/20) are transient
 and clear after a few minutes back to auto.
 
-> ⚠️ **AUX2 propagation delay (~2 min):** field testing (2026-06-19) shows that the
-> controller takes approximately **2 minutes** to update SC1 bit 23 after a cloud command
-> changes AUX2 state. This is a firmware/hardware limitation of the ESP controller itself —
-> the local integration reads SC1 correctly and at the configured polling interval (as fast
-> as 15 s), but it is reading a register that lags the actual relay state by ~2 min.
-> **Consequence:** if a cloud command turns AUX2 ON for less than ~2 minutes, the local
-> integration will never see the ON state at all — SC1 bit 23 has not had time to update
-> before the OFF command is already received by the controller.
-> If you have an idea on how to work around this (e.g. a local endpoint that reflects AUX2
-> state more promptly, or a different SC1 bit that updates faster), please open an issue —
-> though a fix seems unlikely without access to the firmware.
+> ⚠️ **AUX2 propagation delay (~2 min):** the controller takes ~2 minutes to update SC1 bit 23 after a cloud command changes AUX2 (firmware limitation — the register lags the relay). A cloud ON shorter than ~2 min is never seen locally. Ideas for a workaround are welcome via issues.
 
 ---
 
@@ -308,42 +222,13 @@ new feature. Findings are credited in the changelog. 🙏
 
 ## Error handling
 
-- Short HTTP timeout (5 s); polling default 30 s (configurable).
-- `/api/data` or `/api/info` fails → last known values are served from cache; entities stay available.
-- Cache expires after **3 × polling interval** (e.g. 45 s at 15 s polling) — beyond that the
-  entities go unavailable instead of serving a stale state (e.g. AUX showing ON long after a dropout).
-- Both fail AND no data has ever been received → `UpdateFailed` (all entities unavailable).
-- On cache use, a warning is logged with the last `TIM` timestamp; the
-  `Dernière mesure boîtier` sensor freezes, making stale data visible.
-- **Re-poll on recovery**: when the controller comes back after an HTTP dropout, an extra poll is
-  triggered 1 s later — the fresh state replaces the cache without waiting a full polling cycle.
-- A missing field never crashes — the affected entity just goes unavailable.
-- The controller often returns an **empty HTTP 200** on `/api/data`; the client
-  retries a few times per cycle (0.3 s between retries) to smooth this out.
+On failure, the last known values are served from cache (entities stay available); the cache expires after **3 × polling interval**, beyond which entities go unavailable rather than serve stale state. Empty HTTP 200 responses (frequent on `/api/data`) are retried within the cycle; when the controller comes back after a dropout, an extra poll fires 1 s later. On cache use, the `Dernière mesure boîtier` sensor freezes, making stale data visible. A missing field never crashes — the entity just goes unavailable.
 
 ---
 
 ## Read-only limitation
 
-**This integration is read-only.** It does not and cannot currently:
-
-- control the filtration pump;
-- control AUX1;
-- control AUX2;
-- change Oklyn schedules / regulation setpoints;
-- change Wi-Fi settings;
-- replace the Oklyn cloud for any command.
-
-It will never send `POST`/`PUT` to the controller (including `/wifi-try`), and
-performs no aggressive scanning beyond the documented `GET` requests.
-
-## Known limitations (local API)
-
-- **No local command endpoint was found** — see [Reverse engineering notes](#reverse-engineering-notes).
-- **AUX mode** (switch vs regulator) and **regulation setpoints** (pH, RedOx) are
-  not exposed locally — cloud/config only.
-- The cloud/API is still required for native Oklyn commands.
-- Single device per host.
+**This integration is read-only.** It cannot control the pump or auxiliaries, change schedules, setpoints or Wi-Fi settings — no local command endpoint exists (see [Reverse engineering notes](#reverse-engineering-notes)), and it will never send `POST`/`PUT` to the controller. AUX mode (switch vs regulator) and regulation setpoints are cloud-only; the cloud integration remains required for commands. Single device per host.
 
 ---
 
@@ -367,23 +252,7 @@ The controller's own local web UI (`http://oklyn.local/`) only references:
 /api/info  /api/wifi  /wifi-scan  /wifi-try
 ```
 
-Its HTML/JS contains no route referencing `pump`, `aux`, `aux2`, `relay`,
-`pompe`, `filtration`, `gpio` or `output` — confirming the local server only
-serves diagnostics + Wi-Fi provisioning, not control. If you find a working
-command endpoint on a different firmware version, please
-[open an issue](https://github.com/ADNPolymerase/ha-oklyn-local/issues/new) —
-don't add it to this integration without discussion (see
-[Read-only limitation](#read-only-limitation) above).
-
----
-
-## Summary
-
-Oklyn exposes useful local measurement data over HTTP. The controller can be
-discovered as `oklyn.local` through mDNS. Only TCP port 80 and UDP port 5353
-were found open locally. No local command endpoint for the pump, AUX1 or AUX2
-has been found so far. **This integration is therefore intentionally
-read-only.**
+Its HTML/JS contains no route referencing `pump`, `aux`, `relay`, `filtration`, `gpio` or `output` — confirming the local server only serves diagnostics + Wi-Fi provisioning. If you find a working command endpoint on another firmware, please [open an issue](https://github.com/ADNPolymerase/ha-oklyn-local/issues/new) rather than adding it without discussion.
 
 ---
 

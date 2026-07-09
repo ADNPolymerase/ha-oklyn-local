@@ -32,118 +32,38 @@ Intégration Home Assistant **locale et en lecture seule** pour le boîtier pisc
 
 ## Fonctionnalités
 
-- **pH** — corrigé (`(PH1 + APH) / 100`) et valeur brute sonde
-- **RedOx / ORP** — corrigé (`(ORP + ARX) / 10`, mV) et valeur brute sonde
-- Température **eau** et **air** (°C)
-- **Sel** (piscines au sel) : concentration en g/L — décodée du champ `ECM` (`ECM / 1000`), désactivée par défaut, à activer dans HA si ta piscine est au sel
-- **Pompe** : état de marche + mode (`auto` / `manuel`), décodés du mot d'état `SC1`
-- **Auxiliaire 1** : état de sortie, avec nom & type configurables (lumière / chauffage / électrolyseur / personnalisé)
-- **Diagnostic** : signal Wi-Fi, mémoire libre, versions firmware/core/SDK, indicateurs service/clef/config
-- **Liaison routeur** : l'adresse MAC du boîtier est enregistrée dans le registre des appareils HA — HA fait automatiquement le lien avec ton intégration routeur (Livebox, Freebox, UniFi…)
-- **Champs bruts** exposés (désactivés par défaut) pour analyse
-- Les capteurs corrigés (pH, RedOx, température eau/air) exposent `raw_*` /
-  `offset_*` / `corrected` en attributs d'état pour une traçabilité complète
-- Configuration UI complète — `oklyn.local` (mDNS) ou IP, intervalle de polling, pas de YAML
-- Timeout HTTP court, polling configurable (15 / 30 / 60 / 120 / 300 s)
-- Robuste aux réponses vides intermittentes du boîtier (retries intégrés)
-- **Cache des dernières valeurs connues** — les entités restent disponibles en cas
-  de défaillance transitoire ; un capteur `Dernière mesure boîtier` indique quand
-  les données ont été rafraîchies pour la dernière fois
-- Traductions française, anglaise et russe
+- **pH, RedOx/ORP, températures eau et air** — valeurs corrigées (sonde + offset boîtier), avec attributs `raw_*` / `offset_*` / `corrected` pour une traçabilité complète, plus les capteurs sonde bruts (désactivés par défaut).
+- **Sel** (piscines au sel, g/L, `ECM / 1000`) — désactivé par défaut.
+- **Pompe** (état de marche + mode `auto` / `manuel`) et **Auxiliaires 1 et 2** (nom & type configurables), décodés du mot d'état `SC1`.
+- **Diagnostic** : signal Wi-Fi, mémoire libre, versions firmware, indicateurs service/clef/config — et **champs bruts** (désactivés par défaut) pour analyse.
+- **Liaison routeur** : l'adresse MAC est enregistrée dans HA, qui fait le lien avec ton intégration routeur (Livebox, Freebox, UniFi…).
+- Configuration UI complète (`oklyn.local` ou IP), polling configurable (15–300 s), retries intégrés, **cache des dernières valeurs connues** avec capteur `Dernière mesure boîtier`.
+- Traductions française, anglaise et russe.
 
 ---
 
-## Installation via HACS
+## Installation (HACS)
 
-1. Dans Home Assistant, ouvre **HACS → Intégrations**.
-2. Menu **⋮** → **Dépôts personnalisés**.
-3. Ajoute `https://github.com/ADNPolymerase/ha-oklyn-local` en catégorie **Intégration**.
-4. Cherche **Oklyn Local** et clique **Télécharger**.
-5. Redémarre Home Assistant.
-6. **Paramètres → Appareils et services → Ajouter une intégration → Oklyn Local**.
-7. Saisis l'hôte du boîtier : son nom mDNS `oklyn.local`, ou son adresse IP (ex. `192.168.1.100`).
+1. HACS → **⋮** → **Dépôts personnalisés** → `https://github.com/ADNPolymerase/ha-oklyn-local`, catégorie **Intégration**.
+2. Télécharge **Oklyn Local**, redémarre Home Assistant.
+3. **Paramètres → Appareils et services → Ajouter une intégration** → **Oklyn Local**, puis saisis l'hôte du boîtier : `oklyn.local` (mDNS) ou son IP.
 
-> 💡 **Conseil :** `oklyn.local` fonctionne directement sur la plupart des réseaux
-> domestiques (mDNS). Si ton réseau ne résout pas les noms `.local` (certains
-> routeurs / VLAN / configs Docker ne le font pas), assigne plutôt une IP fixe
-> (réservation DHCP) au boîtier pour que l'adresse ne change pas entre les
-> redémarrages.
+> 💡 Si ton réseau ne résout pas les noms `.local` (certains routeurs / VLAN / configs Docker), utilise plutôt une IP fixe (réservation DHCP).
 
-## Installation manuelle
-
-1. Copie le dossier `custom_components/oklyn_local/` dans
-   `config/custom_components/`.
-2. Redémarre Home Assistant, puis ajoute l'intégration comme ci-dessus.
+Alternative manuelle : copie `custom_components/oklyn_local/` dans `config/custom_components/`, redémarre, puis ajoute l'intégration.
 
 ---
 
-## Découverte locale / mDNS
+## API locale
 
-Le boîtier Oklyn annonce son service HTTP local via mDNS/zeroconf :
-
-```text
-_http._tcp.local → oklyn.local:80
-```
-
-Confirmé via :
-
-```bash
-dns-sd -B _http._tcp local        # → oklyn
-dns-sd -L oklyn _http._tcp local  # → oklyn.local.:80
-```
-
-Endpoints locaux confirmés (fonctionnent avec le nom mDNS ou l'IP) :
-
-```text
-GET http://oklyn.local/api/info
-GET http://oklyn.local/api/data
-```
-
-Si la résolution `.local` ne fonctionne pas sur ton réseau (certains routeurs /
-VLAN / réseaux Docker ne supportent pas mDNS), utilise l'adresse IP du boîtier
-à la place — le config flow accepte les deux.
-
----
-
-## Endpoints utilisés
+Le boîtier s'annonce via mDNS (`_http._tcp.local → oklyn.local:80`) et expose deux endpoints :
 
 | Méthode | URL | Usage |
 | --- | --- | --- |
 | `GET` | `http://<host>/api/info` | infos techniques du boîtier |
 | `GET` | `http://<host>/api/data` | mesures brutes + mot d'état |
 
-Le serveur HTTP local est un **portail diagnostic + provisioning Wi-Fi**. Il n'expose
-**aucun endpoint de commande** — le pilotage pompe/AUX est cloud uniquement.
-
----
-
-## Constats réseau
-
-Les scans locaux sur un boîtier réel (firmware `436`) ont montré :
-
-```text
-$ nmap -Pn -T4 --top-ports 1000 <ip>
-PORT   STATE SERVICE
-80/tcp open  http
-```
-
-- **TCP 80 ouvert** — l'API HTTP locale documentée ici.
-- **Pas de MQTT** (1883 / 8883), **pas de HTTPS** (443), **pas d'HTTP alternatif**
-  (8080 / 8000) — tous fermés/filtrés.
-- **Pas de CoAP** (UDP 5683) — fermé.
-- **UDP 5353 ouvert** — mDNS / zeroconf (voir [Découverte locale](#découverte-locale--mdns) ci-dessus).
-- Le préfixe MAC correspond au vendeur **Espressif** — le boîtier est basé sur
-  une puce ESP.
-- Tous les autres ports scannés (TCP/UDP) sont filtrés ou fermés — aucun autre
-  service local n'a été trouvé.
-
-Aucun endpoint de commande local pour la pompe, AUX1 ou AUX2 n'a été trouvé
-(voir [Notes de reverse engineering](#notes-de-reverse-engineering) ci-dessous
-pour la liste complète des chemins testés). Les commandes semblent passer
-exclusivement par le cloud : les captures de trafic montrent le boîtier
-contacter `iot.oklyn.fr` (CNAME `esp.api.oklyn.fr`). Ceci est mentionné ici à
-titre purement diagnostique — **cette intégration ne contacte jamais ce
-domaine**.
+Le serveur HTTP local est un **portail diagnostic + provisioning Wi-Fi** — il n'expose **aucun endpoint de commande** ; le pilotage pompe/AUX est cloud uniquement. Les scans réseau (firmware `436`) n'ont trouvé que TCP 80 et UDP 5353 (mDNS) ouverts — pas de MQTT, HTTPS, HTTP alternatif ni CoAP. Le boîtier est basé ESP (préfixe MAC Espressif), et les captures de trafic montrent que les commandes passent par `iot.oklyn.fr` — **cette intégration ne contacte jamais ce domaine**.
 
 ---
 
@@ -243,17 +163,7 @@ Les tests terrain montrent une séparation nette : `/api/data` expose les **mesu
 `SC1 = 0` = repos (pompe arrêtée, en auto). Les bits d'override manuel (19/20) sont
 transitoires et s'effacent au bout de quelques minutes (retour auto).
 
-> ⚠️ **Délai de propagation AUX2 (~2 min) :** les tests terrain (2026-06-19) montrent que
-> le boîtier met environ **2 minutes** à mettre à jour le bit 23 de SC1 après une commande
-> cloud sur AUX2. Il s'agit d'une limitation firmware/hardware du boîtier ESP lui-même —
-> l'intégration locale lit SC1 correctement et à l'intervalle de polling configuré (jusqu'à
-> 15 s), mais elle lit un registre qui accuse ~2 min de retard sur l'état réel du relais.
-> **Conséquence :** si une commande cloud allume AUX2 pendant moins de ~2 minutes, l'intégration
-> locale ne verra jamais l'état ON — le bit 23 de SC1 n'a pas eu le temps de basculer avant
-> que la commande OFF soit déjà reçue par le boîtier.
-> Si tu as une piste pour contourner ce problème (ex. un endpoint local reflétant l'état AUX2
-> plus rapidement, ou un autre bit SC1 qui se met à jour plus vite), ouvre une issue —
-> bien qu'un correctif semble peu probable sans accès au firmware.
+> ⚠️ **Délai de propagation AUX2 (~2 min) :** le boîtier met ~2 minutes à mettre à jour le bit 23 de SC1 après une commande cloud sur AUX2 (limitation firmware — le registre est en retard sur le relais). Un ON cloud de moins de ~2 min n'est jamais vu localement. Les pistes de contournement sont bienvenues via les issues.
 
 ---
 
@@ -302,42 +212,13 @@ nouvelle fonction. Les contributions sont créditées dans le changelog. 🙏
 
 ## Gestion des erreurs
 
-- Timeout HTTP court (5 s) ; polling 30 s par défaut (configurable).
-- `/api/data` ou `/api/info` échoue → les dernières valeurs connues sont servies depuis le cache ; les entités restent disponibles.
-- Le cache expire après **3 × l'intervalle de polling** (ex. 45 s à 15 s de polling) — au-delà,
-  les entités passent indisponibles plutôt que de servir un état périmé (ex. AUX affiché ON longtemps après une coupure).
-- Les deux échouent ET aucune donnée n'a jamais été reçue → `UpdateFailed` (toutes les entités indisponibles).
-- En cas d'utilisation du cache, un warning est loggé avec le dernier `TIM` ; le
-  capteur `Dernière mesure boîtier` se fige, rendant les données périmées visibles.
-- **Re-poll à la sortie de coupure** : quand le boîtier redevient joignable après une coupure HTTP,
-  un poll supplémentaire est déclenché 1 s plus tard — l'état frais remplace le cache sans attendre un cycle complet.
-- Un champ absent ne plante jamais — l'entité concernée passe indisponible.
-- Le boîtier renvoie souvent un **HTTP 200 vide** sur `/api/data` ; le client
-  réessaie plusieurs fois par cycle (0,3 s entre tentatives) pour lisser ces blips.
+En cas d'échec, les dernières valeurs connues sont servies depuis le cache (les entités restent disponibles) ; le cache expire après **3 × l'intervalle de polling**, au-delà les entités passent indisponibles plutôt que de servir un état périmé. Les HTTP 200 vides (fréquents sur `/api/data`) sont réessayés dans le cycle ; à la sortie d'une coupure, un poll supplémentaire part 1 s plus tard. En cas d'utilisation du cache, le capteur `Dernière mesure boîtier` se fige, rendant les données périmées visibles. Un champ absent ne plante jamais — l'entité passe juste indisponible.
 
 ---
 
 ## Limitation lecture seule
 
-**Cette intégration est en lecture seule.** Elle ne fait et ne peut pas faire :
-
-- piloter la pompe de filtration ;
-- piloter AUX1 ;
-- piloter AUX2 ;
-- modifier les programmes / consignes de régulation Oklyn ;
-- modifier la configuration Wi-Fi ;
-- remplacer le cloud Oklyn pour une quelconque commande.
-
-Elle n'envoie jamais de `POST`/`PUT` au boîtier (y compris `/wifi-try`), et ne
-fait aucun scan agressif au-delà des requêtes `GET` documentées.
-
-## Limites connues (API locale)
-
-- **Aucun endpoint de commande local n'a été trouvé** — voir [Notes de reverse engineering](#notes-de-reverse-engineering).
-- Le **mode AUX** (interrupteur vs régulateur) et les **consignes de régulation**
-  (pH, RedOx) ne sont pas exposés en local — cloud/config uniquement.
-- Le cloud/API reste nécessaire pour les commandes natives Oklyn.
-- Un seul appareil par hôte.
+**Cette intégration est en lecture seule.** Elle ne peut pas piloter la pompe ou les auxiliaires, ni modifier programmes, consignes ou Wi-Fi — aucun endpoint de commande local n'existe (voir [Notes de reverse engineering](#notes-de-reverse-engineering)), et elle n'envoie jamais de `POST`/`PUT` au boîtier. Le mode AUX (interrupteur vs régulateur) et les consignes de régulation sont cloud uniquement ; l'intégration cloud reste nécessaire pour les commandes. Un seul appareil par hôte.
 
 ---
 
@@ -361,23 +242,7 @@ La page web locale du boîtier (`http://oklyn.local/`) ne référence que :
 /api/info  /api/wifi  /wifi-scan  /wifi-try
 ```
 
-Son HTML/JS ne contient aucune route faisant référence à `pump`, `aux`,
-`aux2`, `relay`, `pompe`, `filtration`, `gpio` ou `output` — ce qui confirme
-que le serveur local sert uniquement le diagnostic + le provisioning Wi-Fi, pas
-le pilotage. Si tu trouves un endpoint de commande fonctionnel sur une autre
-version de firmware, merci d'[ouvrir une issue](https://github.com/ADNPolymerase/ha-oklyn-local/issues/new)
-— ne l'ajoute pas à l'intégration sans discussion préalable (voir
-[Limitation lecture seule](#limitation-lecture-seule) ci-dessus).
-
----
-
-## Résumé
-
-Oklyn expose des données de mesure utiles via HTTP en local. Le boîtier est
-découvrable comme `oklyn.local` via mDNS. Seuls le port TCP 80 et le port UDP
-5353 ont été trouvés ouverts en local. Aucun endpoint de commande local pour
-la pompe, AUX1 ou AUX2 n'a été trouvé à ce jour. **Cette intégration est donc
-volontairement en lecture seule.**
+Son HTML/JS ne contient aucune route faisant référence à `pump`, `aux`, `relay`, `filtration`, `gpio` ou `output` — le serveur local ne sert que le diagnostic + le provisioning Wi-Fi. Si tu trouves un endpoint de commande fonctionnel sur un autre firmware, merci d'[ouvrir une issue](https://github.com/ADNPolymerase/ha-oklyn-local/issues/new) plutôt que de l'ajouter sans discussion.
 
 ---
 
