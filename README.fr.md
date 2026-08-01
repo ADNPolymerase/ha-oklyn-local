@@ -52,6 +52,8 @@ Disponible directement dans HACS — aucun dépôt personnalisé à ajouter.
 
 > 💡 Si ton réseau ne résout pas les noms `.local` (certains routeurs / VLAN / configs Docker), utilise plutôt une IP fixe (réservation DHCP).
 
+En dépôt personnalisé : HACS → **⋮** → **Dépôts personnalisés** → `https://github.com/ADNPolymerase/ha-oklyn-local`, catégorie **Intégration**.
+
 Alternative manuelle : copie `custom_components/oklyn_local/` dans `config/custom_components/`, redémarre, puis ajoute l'intégration.
 
 ---

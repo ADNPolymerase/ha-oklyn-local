@@ -56,6 +56,8 @@ Available directly in HACS — no custom repository needed.
 
 > 💡 If your network doesn't resolve `.local` names (some routers / VLANs / Docker setups), use a static IP (DHCP reservation) instead.
 
+As a custom repository: HACS → **⋮** → **Custom repositories** → `https://github.com/ADNPolymerase/ha-oklyn-local`, category **Integration**.
+
 Manual alternative: copy `custom_components/oklyn_local/` into `config/custom_components/`, restart, then add the integration.
 
 ---
