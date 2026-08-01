@@ -1,6 +1,6 @@
 # Oklyn Local pour Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/ADNPolymerase/ha-oklyn-local)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-blue.svg)](https://github.com/hacs/default)
 [![GitHub Release](https://badgen.net/github/release/ADNPolymerase/ha-oklyn-local)](https://github.com/ADNPolymerase/ha-oklyn-local/releases)
 [![Validate](https://github.com/ADNPolymerase/ha-oklyn-local/actions/workflows/validate.yml/badge.svg)](https://github.com/ADNPolymerase/ha-oklyn-local/actions/workflows/validate.yml)
 [![HA Version](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io/)
@@ -44,8 +44,10 @@ Intégration Home Assistant **locale et en lecture seule** pour le boîtier pisc
 
 ## Installation (HACS)
 
-1. HACS → **⋮** → **Dépôts personnalisés** → `https://github.com/ADNPolymerase/ha-oklyn-local`, catégorie **Intégration**.
-2. Télécharge **Oklyn Local**, redémarre Home Assistant.
+Disponible directement dans HACS — aucun dépôt personnalisé à ajouter.
+
+1. Ouvre **HACS**, recherche **Oklyn Local** et télécharge-le.
+2. Redémarre Home Assistant.
 3. **Paramètres → Appareils et services → Ajouter une intégration** → **Oklyn Local**, puis saisis l'hôte du boîtier : `oklyn.local` (mDNS) ou son IP.
 
 > 💡 Si ton réseau ne résout pas les noms `.local` (certains routeurs / VLAN / configs Docker), utilise plutôt une IP fixe (réservation DHCP).

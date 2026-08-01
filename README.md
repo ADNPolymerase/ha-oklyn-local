@@ -4,7 +4,7 @@
 
 # Oklyn Local for Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/ADNPolymerase/ha-oklyn-local)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-blue.svg)](https://github.com/hacs/default)
 [![GitHub Release](https://badgen.net/github/release/ADNPolymerase/ha-oklyn-local)](https://github.com/ADNPolymerase/ha-oklyn-local/releases)
 [![Validate](https://github.com/ADNPolymerase/ha-oklyn-local/actions/workflows/validate.yml/badge.svg)](https://github.com/ADNPolymerase/ha-oklyn-local/actions/workflows/validate.yml)
 [![HA Version](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io/)
@@ -48,8 +48,10 @@ controller. It polls the controller directly over your LAN (HTTP, port 80) —
 
 ## Installation (HACS)
 
-1. HACS → **⋮** → **Custom repositories** → `https://github.com/ADNPolymerase/ha-oklyn-local`, category **Integration**.
-2. Download **Oklyn Local**, restart Home Assistant.
+Available directly in HACS — no custom repository needed.
+
+1. Open **HACS**, search for **Oklyn Local** and download it.
+2. Restart Home Assistant.
 3. **Settings → Devices & Services → Add Integration** → **Oklyn Local**, then enter the controller's host: `oklyn.local` (mDNS) or its IP.
 
 > 💡 If your network doesn't resolve `.local` names (some routers / VLANs / Docker setups), use a static IP (DHCP reservation) instead.
