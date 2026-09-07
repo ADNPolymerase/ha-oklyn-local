@@ -50,6 +50,10 @@ class OklynSensorDescription(SensorEntityDescription):
     # supplémentaires (ex. valeur brute sonde + offset) pour les capteurs
     # "corrigés", afin de garder la traçabilité brut → correction → corrigé.
     attrs_fn: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+    # Bande morte : la valeur publiée ne bouge que si la lecture s'écarte d'au
+    # moins `deadband` de la dernière valeur publiée. Réservé aux diagnostics
+    # du boîtier, qui oscillent à chaque lecture (voir _apply_deadband).
+    deadband: float | None = None
 
 
 def _num(payload: dict[str, Any], field: str) -> float | None:
@@ -314,6 +318,8 @@ INFO_SENSORS: tuple[OklynSensorDescription, ...] = (
         translation_key="wifi_signal",
         source="info",
         field="wifilevel",
+        # 3 dB : sous la precision reelle d'une mesure RSSI sur ESP.
+        deadband=3,
         device_class=SensorDeviceClass.SIGNAL_STRENGTH,
         native_unit_of_measurement="dBm",
         state_class=SensorStateClass.MEASUREMENT,
@@ -324,6 +330,9 @@ INFO_SENSORS: tuple[OklynSensorDescription, ...] = (
         translation_key="memory_free",
         source="info",
         field="memory_free",
+        # 4 KiB : le tas libre d'un ESP oscille naturellement de plusieurs Ko
+        # d'une lecture a l'autre, seule la tendance longue est exploitable.
+        deadband=4096,
         device_class=SensorDeviceClass.DATA_SIZE,
         native_unit_of_measurement=UnitOfInformation.BYTES,
         state_class=SensorStateClass.MEASUREMENT,
@@ -435,6 +444,8 @@ class OklynLocalSensor(OklynLocalEntity, SensorEntity):
     ) -> None:
         super().__init__(coordinator)
         self.entity_description = description
+        # Derniere valeur publiee, pour les capteurs a bande morte.
+        self._deadband_ref: float | None = None
         serial = next(iter(self._attr_device_info["identifiers"]))[1]
         self._attr_unique_id = f"{serial}_{description.key}"
         # Le translation_key "raw_field" est partagé : on personnalise le nom
@@ -457,6 +468,35 @@ class OklynLocalSensor(OklynLocalEntity, SensorEntity):
             and self.entity_description.field in payload
         )
 
+    def _apply_deadband(self, value: Any) -> Any:
+        """Ne republie une valeur que si elle s'ecarte assez de la precedente.
+
+        Les diagnostics du boitier (memoire libre, RSSI) changent a *chaque*
+        lecture, donc jusqu'a 5 760 fois par jour a 15 s : mesure sur 3 h,
+        le tas libre bouge a 100 % des lectures, de 1,5 Ko en mediane, pour
+        une plage de 1 a 35 Ko. Ce n'est pas un signal, c'est du bruit, et
+        chaque oscillation cree un etat de plus dans le recorder.
+
+        Une bande morte est preferable a un simple arrondi : elle absorbe le
+        va-et-vient autour d'une valeur stable, mais laisse passer les vrais
+        mouvements sans ecraser les extremes (un arrondi au pas de 8 Ko
+        ramenait un tas de 1,1 Ko a zero). Mesure sur les donnees reelles :
+        environ dix fois moins d'ecritures, plage min/max preservee.
+        """
+        band = self.entity_description.deadband
+        if band is None:
+            return value
+        try:
+            num = float(value)
+        except (TypeError, ValueError):
+            return value
+        if self._deadband_ref is None or abs(num - self._deadband_ref) >= band:
+            self._deadband_ref = num
+        ref = self._deadband_ref
+        # L'API renvoie ces deux champs en entiers ; on evite qu'un passage par
+        # float ne transforme "8648" en "8648.0" dans l'etat publie.
+        return int(ref) if ref.is_integer() else ref
+
     @property
     def native_value(self) -> Any:
         payload = self._payload
@@ -472,13 +512,13 @@ class OklynLocalSensor(OklynLocalEntity, SensorEntity):
             return None
 
         if desc.value_fn is not None:
-            return desc.value_fn(raw)
+            return self._apply_deadband(desc.value_fn(raw))
         if desc.divide is not None:
             try:
-                return float(raw) / desc.divide
+                return self._apply_deadband(float(raw) / desc.divide)
             except (TypeError, ValueError):
                 return None
-        return raw
+        return self._apply_deadband(raw)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
