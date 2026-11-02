@@ -1,5 +1,7 @@
 # Oklyn Local pour Home Assistant
 
+<a href="https://github.com/ADNPolymerase/ha-oklyn-local/blob/main/README.md"><img src="https://raw.githubusercontent.com/ADNPolymerase/ha-oklyn-local/main/docs/lang-en.svg" alt="Read in English" height="60"></a>
+
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-blue.svg)](https://github.com/hacs/default)
 [![GitHub Release](https://badgen.net/github/release/ADNPolymerase/ha-oklyn-local)](https://github.com/ADNPolymerase/ha-oklyn-local/releases)
 [![Validate](https://github.com/ADNPolymerase/ha-oklyn-local/actions/workflows/validate.yml/badge.svg)](https://github.com/ADNPolymerase/ha-oklyn-local/actions/workflows/validate.yml)
@@ -14,8 +16,6 @@ Intégration Home Assistant **locale et en lecture seule** pour le boîtier pisc
 **Oklyn**. Elle interroge le boîtier directement sur le réseau local (HTTP, port 80)
 — **sans cloud, sans compte, sans token** — et expose les mesures sous forme de
 `sensor` / `binary_sensor`.
-
-> 🇬🇧 [Read in English](README.md)
 
 > ⚠️ **Preuve de concept — lecture seule.** Cette intégration n'envoie jamais de
 > commande : pas de pilotage pompe / AUX, pas de config Wi-Fi, aucun `PUT`/`POST`.

@@ -4,6 +4,8 @@
 
 # Oklyn Local for Home Assistant
 
+<a href="https://github.com/ADNPolymerase/ha-oklyn-local/blob/main/README.fr.md"><img src="https://raw.githubusercontent.com/ADNPolymerase/ha-oklyn-local/main/docs/lang-fr.svg" alt="Lire en français" height="60"></a>
+
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-blue.svg)](https://github.com/hacs/default)
 [![GitHub Release](https://badgen.net/github/release/ADNPolymerase/ha-oklyn-local)](https://github.com/ADNPolymerase/ha-oklyn-local/releases)
 [![Validate](https://github.com/ADNPolymerase/ha-oklyn-local/actions/workflows/validate.yml/badge.svg)](https://github.com/ADNPolymerase/ha-oklyn-local/actions/workflows/validate.yml)
@@ -18,8 +20,6 @@
 controller. It polls the controller directly over your LAN (HTTP, port 80) —
 **no cloud, no account, no token** — and exposes the measurements as
 `sensor` / `binary_sensor` entities.
-
-> 🇫🇷 [Lire en français](README.fr.md)
 
 > ⚠️ **Proof of concept — read-only.** This integration never sends a command:
 > no pump / AUX control, no Wi-Fi config, no `PUT`/`POST`. It only reads
